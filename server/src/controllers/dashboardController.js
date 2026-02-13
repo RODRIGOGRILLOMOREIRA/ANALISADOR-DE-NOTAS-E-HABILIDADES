@@ -1,0 +1,225 @@
+const Avaliacao = require('../models/Avaliacao');
+const Aluno = require('../models/Aluno');
+const Habilidade = require('../models/Habilidade');
+
+// @desc    Dashboard geral - estatísticas
+// @route   GET /api/dashboard/estatisticas
+exports.getEstatisticas = async (req, res) => {
+  try {
+    const { turma, disciplina, ano, trimestre, pontoCorte } = req.query;
+    
+    const filter = {};
+    if (turma) filter.turma = turma;
+    if (disciplina) filter.disciplina = disciplina;
+    if (ano) filter.ano = ano;
+    if (trimestre) filter.trimestre = trimestre;
+    
+    const avaliacoes = await Avaliacao.find(filter);
+    
+    const corte = pontoCorte ? parseFloat(pontoCorte) : 6.0;
+    
+    let aprovados = 0;
+    let reprovados = 0;
+    let somaNotas = 0;
+    let quantidade = 0;
+    
+    avaliacoes.forEach(av => {
+      if (av.notaTrimestre !== null && av.notaTrimestre !== undefined) {
+        somaNotas += av.notaTrimestre;
+        quantidade++;
+        
+        if (av.notaTrimestre >= corte) {
+          aprovados++;
+        } else {
+          reprovados++;
+        }
+      }
+    });
+    
+    const media = quantidade > 0 ? (somaNotas / quantidade).toFixed(2) : 0;
+    const percentualAprovacao = quantidade > 0 
+      ? ((aprovados / quantidade) * 100).toFixed(2)
+      : 0;
+    
+    res.json({
+      totalAvaliacoes: quantidade,
+      mediaGeral: parseFloat(media),
+      aprovados,
+      reprovados,
+      percentualAprovacao: parseFloat(percentualAprovacao),
+      pontoCorte: corte
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar estatísticas', error: error.message });
+  }
+};
+
+// @desc    Dashboard - Desempenho por disciplina
+// @route   GET /api/dashboard/desempenho-disciplina
+exports.getDesempenhoPorDisciplina = async (req, res) => {
+  try {
+    const { turma, ano, trimestre } = req.query;
+    
+    const filter = {};
+    if (turma) filter.turma = turma;
+    if (ano) filter.ano = ano;
+    if (trimestre) filter.trimestre = trimestre;
+    
+    const avaliacoes = await Avaliacao.find(filter)
+      .populate('disciplina', 'nome codigo');
+    
+    const desempenhoPorDisciplina = {};
+    
+    avaliacoes.forEach(av => {
+      const disciplinaId = av.disciplina._id.toString();
+      const disciplinaNome = av.disciplina.nome;
+      
+      if (!desempenhoPorDisciplina[disciplinaId]) {
+        desempenhoPorDisciplina[disciplinaId] = {
+          disciplina: disciplinaNome,
+          codigo: av.disciplina.codigo,
+          somaNotas: 0,
+          quantidade: 0,
+          media: 0
+        };
+      }
+      
+      if (av.notaTrimestre !== null && av.notaTrimestre !== undefined) {
+        desempenhoPorDisciplina[disciplinaId].somaNotas += av.notaTrimestre;
+        desempenhoPorDisciplina[disciplinaId].quantidade++;
+      }
+    });
+    
+    // Calcular médias
+    Object.keys(desempenhoPorDisciplina).forEach(key => {
+      const disc = desempenhoPorDisciplina[key];
+      disc.media = disc.quantidade > 0 
+        ? parseFloat((disc.somaNotas / disc.quantidade).toFixed(2))
+        : 0;
+      delete disc.somaNotas;
+      delete disc.quantidade;
+    });
+    
+    res.json(Object.values(desempenhoPorDisciplina));
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar desempenho por disciplina', error: error.message });
+  }
+};
+
+// @desc    Dashboard - Evolução trimestral
+// @route   GET /api/dashboard/evolucao-trimestral
+exports.getEvolucaoTrimestral = async (req, res) => {
+  try {
+    const { turma, disciplina, ano } = req.query;
+    
+    const filter = { ano: ano || new Date().getFullYear() };
+    if (turma) filter.turma = turma;
+    if (disciplina) filter.disciplina = disciplina;
+    
+    const evolucao = [];
+    
+    for (let trim = 1; trim <= 3; trim++) {
+      filter.trimestre = trim;
+      const avaliacoes = await Avaliacao.find(filter);
+      
+      let soma = 0;
+      let count = 0;
+      
+      avaliacoes.forEach(av => {
+        if (av.notaTrimestre !== null && av.notaTrimestre !== undefined) {
+          soma += av.notaTrimestre;
+          count++;
+        }
+      });
+      
+      evolucao.push({
+        trimestre: trim,
+        media: count > 0 ? parseFloat((soma / count).toFixed(2)) : 0,
+        totalAlunos: count
+      });
+    }
+    
+    res.json(evolucao);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar evolução trimestral', error: error.message });
+  }
+};
+
+// @desc    Dashboard - Alunos em risco
+// @route   GET /api/dashboard/alunos-risco
+exports.getAlunosEmRisco = async (req, res) => {
+  try {
+    const { turma, ano, pontoCorte } = req.query;
+    const corte = pontoCorte ? parseFloat(pontoCorte) : 6.0;
+    
+    const filter = {
+      ano: ano || new Date().getFullYear(),
+      notaTrimestre: { $lt: corte }
+    };
+    
+    if (turma) filter.turma = turma;
+    
+    const avaliacoes = await Avaliacao.find(filter)
+      .populate('aluno', 'nome matricula')
+      .populate('disciplina', 'nome')
+      .sort({ notaTrimestre: 1 });
+    
+    const alunosEmRisco = [];
+    const alunosMap = {};
+    
+    avaliacoes.forEach(av => {
+      const alunoId = av.aluno._id.toString();
+      
+      if (!alunosMap[alunoId]) {
+        alunosMap[alunoId] = {
+          aluno: av.aluno,
+          disciplinasComDificuldade: []
+        };
+      }
+      
+      alunosMap[alunoId].disciplinasComDificuldade.push({
+        disciplina: av.disciplina.nome,
+        trimestre: av.trimestre,
+        nota: av.notaTrimestre
+      });
+    });
+    
+    res.json(Object.values(alunosMap));
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar alunos em risco', error: error.message });
+  }
+};
+
+// @desc    Dashboard - Habilidades desenvolvidas
+// @route   GET /api/dashboard/habilidades-desenvolvidas
+exports.getHabilidadesDesenvolvidas = async (req, res) => {
+  try {
+    const { turma, disciplina, ano, trimestre } = req.query;
+    
+    const filter = { ativo: true };
+    if (turma) filter.turma = turma;
+    if (disciplina) filter.disciplina = disciplina;
+    if (ano) filter.ano = ano;
+    if (trimestre) filter.trimestre = trimestre;
+    
+    const habilidades = await Habilidade.find(filter)
+      .populate('disciplina', 'nome');
+    
+    const estatisticas = {
+      'nao-desenvolvido': 0,
+      'em-desenvolvimento': 0,
+      'desenvolvido': 0,
+      'plenamente-desenvolvido': 0
+    };
+    
+    habilidades.forEach(hab => {
+      hab.alunosDesempenho.forEach(ad => {
+        estatisticas[ad.nivel]++;
+      });
+    });
+    
+    res.json(estatisticas);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar habilidades desenvolvidas', error: error.message });
+  }
+};
