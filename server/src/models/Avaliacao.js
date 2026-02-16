@@ -22,7 +22,7 @@ const avaliacaoSchema = new mongoose.Schema({
   professor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Professor',
-    required: true,
+    required: false,
     index: true
   },
   ano: {
@@ -43,7 +43,7 @@ const avaliacaoSchema = new mongoose.Schema({
   avaliacoes: [{
     tipo: {
       type: String,
-      enum: ['prova', 'trabalho', 'participacao', 'simulado', 'outro'],
+      enum: ['prova', 'trabalho', 'participacao', 'simulado', 'atividade', 'seminario', 'projeto', 'pesquisa', 'outro'],
       required: true
     },
     descricao: String,
@@ -89,20 +89,32 @@ avaliacaoSchema.methods.calcularNotaTrimestre = function() {
     return 0;
   }
 
+  // SOMA SIMPLES de todas as notas (sem divisão, sem pesos)
   let somaNotas = 0;
-  let somaPesos = 0;
 
   this.avaliacoes.forEach(av => {
-    somaNotas += av.nota * av.peso;
-    somaPesos += av.peso;
+    somaNotas += av.nota;
   });
 
-  this.notaTrimestre = somaPesos > 0 ? parseFloat((somaNotas / somaPesos).toFixed(2)) : 0;
+  this.notaTrimestre = parseFloat(somaNotas.toFixed(2));
   return this.notaTrimestre;
 };
 
 // Hook para calcular nota antes de salvar
 avaliacaoSchema.pre('save', function(next) {
+  // Calcular soma das notas
+  let somaNotas = 0;
+  if (this.avaliacoes && this.avaliacoes.length > 0) {
+    this.avaliacoes.forEach(av => {
+      somaNotas += av.nota;
+    });
+  }
+  
+  // Validar limite
+  if (somaNotas > 10) {
+    return next(new Error(`A soma das notas (${somaNotas.toFixed(2)}) ultrapassou o limite de 10.0 pontos. Ajuste as notas.`));
+  }
+  
   this.calcularNotaTrimestre();
   next();
 });

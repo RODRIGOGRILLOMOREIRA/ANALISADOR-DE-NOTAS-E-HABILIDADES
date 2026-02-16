@@ -68,16 +68,20 @@ exports.createAvaliacao = async (req, res) => {
     });
     
     if (avaliacao) {
-      // Atualizar existente
-      avaliacao = await Avaliacao.findByIdAndUpdate(
-        avaliacao._id,
-        req.body,
-        { new: true, runValidators: true }
-      );
+      // Atualizar existente - usar objeto e .save() para disparar hooks
+      Object.assign(avaliacao, req.body);
+      await avaliacao.save();
     } else {
       // Criar nova
       avaliacao = await Avaliacao.create(req.body);
     }
+    
+    // Repopular para retornar dados completos
+    avaliacao = await Avaliacao.findById(avaliacao._id)
+      .populate('aluno', 'nome matricula')
+      .populate('disciplina', 'nome codigo')
+      .populate('turma', 'nome')
+      .populate('professor', 'nome');
     
     res.status(201).json(avaliacao);
   } catch (error) {
@@ -122,22 +126,28 @@ exports.getMediaAnual = async (req, res) => {
       return res.json({ mediaAnual: 0, avaliacoes: [] });
     }
     
-    let somaNotas = 0;
-    let trimestresComNota = 0;
-    
+    // Criar objeto com notas por trimestre
+    const notasPorTrimestre = {};
     avaliacoes.forEach(av => {
       if (av.notaTrimestre !== null && av.notaTrimestre !== undefined) {
-        somaNotas += av.notaTrimestre;
-        trimestresComNota++;
+        notasPorTrimestre[av.trimestre] = av.notaTrimestre;
       }
     });
     
-    const mediaAnual = trimestresComNota > 0 
-      ? (somaNotas / trimestresComNota).toFixed(2)
-      : 0;
+    // Fórmula com pesos: (T1×3 + T2×3 + T3×4) / 10
+    const t1 = notasPorTrimestre[1] || 0;
+    const t2 = notasPorTrimestre[2] || 0;
+    const t3 = notasPorTrimestre[3] || 0;
+    
+    const mediaAnual = ((t1 * 3) + (t2 * 3) + (t3 * 4)) / 10;
     
     res.json({
-      mediaAnual,
+      mediaAnual: mediaAnual.toFixed(2),
+      trimestres: {
+        primeiro: t1,
+        segundo: t2,
+        terceiro: t3
+      },
       avaliacoes: avaliacoes.map(av => ({
         trimestre: av.trimestre,
         notaTrimestre: av.notaTrimestre,
@@ -153,15 +163,23 @@ exports.getMediaAnual = async (req, res) => {
 // @route   PUT /api/avaliacoes/:id
 exports.updateAvaliacao = async (req, res) => {
   try {
-    const avaliacao = await Avaliacao.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    let avaliacao = await Avaliacao.findById(req.params.id);
     
     if (!avaliacao) {
       return res.status(404).json({ message: 'Avaliação não encontrada' });
     }
+    
+    // Atualizar usando Object.assign e .save() para disparar hooks
+    Object.assign(avaliacao, req.body);
+    await avaliacao.save();
+    
+    // Repopular para retornar dados completos
+    avaliacao = await Avaliacao.findById(avaliacao._id)
+      .populate('aluno', 'nome matricula')
+      .populate('disciplina', 'nome codigo')
+      .populate('turma', 'nome')
+      .populate('professor', 'nome');
+    
     res.json(avaliacao);
   } catch (error) {
     res.status(400).json({ message: 'Erro ao atualizar avaliação', error: error.message });

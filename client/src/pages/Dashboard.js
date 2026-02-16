@@ -11,6 +11,7 @@ import {
   MenuItem,
   Card,
   CardContent,
+  TextField,
 } from '@mui/material';
 import {
   Chart as ChartJS,
@@ -25,7 +26,7 @@ import {
   LineElement,
 } from 'chart.js';
 import { Bar, Pie, Line } from 'react-chartjs-2';
-import { dashboardService, turmaService, disciplinaService } from '../services';
+import { dashboardService, turmaService, disciplinaService, alunoService } from '../services';
 import { toast } from 'react-toastify';
 
 ChartJS.register(
@@ -43,25 +44,50 @@ ChartJS.register(
 const Dashboard = () => {
   const [turmas, setTurmas] = useState([]);
   const [disciplinas, setDisciplinas] = useState([]);
+  const [alunos, setAlunos] = useState([]);
   const [filters, setFilters] = useState({
     turma: '',
+    aluno: '',
     disciplina: '',
     ano: new Date().getFullYear(),
     trimestre: '',
+    dataInicio: '',
+    dataFim: '',
     pontoCorte: 6.0,
   });
 
   const [estatisticas, setEstatisticas] = useState(null);
   const [desempenhoDisciplina, setDesempenhoDisciplina] = useState([]);
   const [evolucaoTrimestral, setEvolucaoTrimestral] = useState([]);
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   useEffect(() => {
     loadInitialData();
   }, []);
 
   useEffect(() => {
+    if (filters.turma) {
+      loadAlunos();
+    } else {
+      setAlunos([]);
+      setFilters(prev => ({ ...prev, aluno: '' }));
+    }
+  }, [filters.turma]);
+
+  useEffect(() => {
     loadDashboardData();
   }, [filters]);
+
+  // Auto-refresh a cada 30 segundos
+  useEffect(() => {
+    let interval;
+    if (autoRefresh) {
+      interval = setInterval(() => {
+        loadDashboardData();
+      }, 30000);
+    }
+    return () => clearInterval(interval);
+  }, [autoRefresh, filters]);
 
   const loadInitialData = async () => {
     try {
@@ -76,13 +102,26 @@ const Dashboard = () => {
     }
   };
 
+  const loadAlunos = async () => {
+    try {
+      const alunosData = await alunoService.getAll({ turma: filters.turma });
+      setAlunos(alunosData);
+    } catch (error) {
+      console.error('Erro ao carregar alunos:', error);
+      setAlunos([]);
+    }
+  };
+
   const loadDashboardData = async () => {
     try {
       const params = {};
       if (filters.turma) params.turma = filters.turma;
+      if (filters.aluno) params.aluno = filters.aluno;
       if (filters.disciplina) params.disciplina = filters.disciplina;
       if (filters.ano) params.ano = filters.ano;
       if (filters.trimestre) params.trimestre = filters.trimestre;
+      if (filters.dataInicio) params.dataInicio = filters.dataInicio;
+      if (filters.dataFim) params.dataFim = filters.dataFim;
       if (filters.pontoCorte) params.pontoCorte = filters.pontoCorte;
 
       const [stats, desempenho, evolucao] = await Promise.all([
@@ -146,13 +185,14 @@ const Dashboard = () => {
       {/* Filtros */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={2}>
+          {/* LINHA 1: Turma, Aluno, Disciplina */}
+          <Grid item xs={12} sm={4} md={4}>
             <FormControl fullWidth size="small">
               <InputLabel>Turma</InputLabel>
               <Select
                 value={filters.turma}
                 label="Turma"
-                onChange={(e) => setFilters({ ...filters, turma: e.target.value })}
+                onChange={(e) => setFilters({ ...filters, turma: e.target.value, aluno: '' })}
               >
                 <MenuItem value="">Todas</MenuItem>
                 {turmas.map((t) => (
@@ -163,7 +203,26 @@ const Dashboard = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+
+          <Grid item xs={12} sm={4} md={4}>
+            <FormControl fullWidth size="small" disabled={!filters.turma}>
+              <InputLabel>Aluno</InputLabel>
+              <Select
+                value={filters.aluno}
+                label="Aluno"
+                onChange={(e) => setFilters({ ...filters, aluno: e.target.value })}
+              >
+                <MenuItem value="">Todos</MenuItem>
+                {alunos.map((a) => (
+                  <MenuItem key={a._id} value={a._id}>
+                    {a.nome} - {a.matricula}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={4} md={4}>
             <FormControl fullWidth size="small">
               <InputLabel>Disciplina</InputLabel>
               <Select
@@ -180,7 +239,9 @@ const Dashboard = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          
+          {/* LINHA 2: Ano, Trimestre, Data Início, Data Fim, Ponto de Corte */}
+          <Grid item xs={12} sm={6} md={2.4}>
             <FormControl fullWidth size="small">
               <InputLabel>Ano</InputLabel>
               <Select
@@ -194,7 +255,8 @@ const Dashboard = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          
+          <Grid item xs={12} sm={6} md={2.4}>
             <FormControl fullWidth size="small">
               <InputLabel>Trimestre</InputLabel>
               <Select
@@ -209,7 +271,33 @@ const Dashboard = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+
+          <Grid item xs={12} sm={6} md={2.4}>
+            <TextField
+              fullWidth
+              size="small"
+              type="date"
+              label="Data Início"
+              value={filters.dataInicio}
+              onChange={(e) => setFilters({ ...filters, dataInicio: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={2.4}>
+            <TextField
+              fullWidth
+              size="small"
+              type="date"
+              label="Data Fim"
+              value={filters.dataFim}
+              onChange={(e) => setFilters({ ...filters, dataFim: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ min: filters.dataInicio }}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6} md={2.4}>
             <FormControl fullWidth size="small">
               <InputLabel>Ponto de Corte</InputLabel>
               <Select

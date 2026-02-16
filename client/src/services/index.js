@@ -20,7 +20,7 @@ export const authService = {
 export const professorService = {
   getAll: async () => {
     const response = await api.get('/professores');
-    return response.data;
+    return response.data.data || response.data;
   },
 
   getById: async (id) => {
@@ -47,7 +47,7 @@ export const professorService = {
 export const disciplinaService = {
   getAll: async () => {
     const response = await api.get('/disciplinas');
-    return response.data;
+    return response.data.data || response.data;
   },
 
   create: async (data) => {
@@ -69,7 +69,7 @@ export const disciplinaService = {
 export const turmaService = {
   getAll: async () => {
     const response = await api.get('/turmas');
-    return response.data;
+    return response.data.data || response.data;
   },
 
   create: async (data) => {
@@ -91,7 +91,7 @@ export const turmaService = {
 export const alunoService = {
   getAll: async (params = {}) => {
     const response = await api.get('/alunos', { params });
-    return response.data;
+    return response.data.data || response.data;
   },
 
   create: async (data) => {
@@ -113,7 +113,7 @@ export const alunoService = {
 export const avaliacaoService = {
   getAll: async (params = {}) => {
     const response = await api.get('/avaliacoes', { params });
-    return response.data;
+    return response.data.data || response.data;
   },
 
   create: async (data) => {
@@ -145,7 +145,7 @@ export const avaliacaoService = {
 export const habilidadeService = {
   getAll: async (params = {}) => {
     const response = await api.get('/habilidades', { params });
-    return response.data;
+    return response.data.data || response.data;
   },
 
   create: async (data) => {

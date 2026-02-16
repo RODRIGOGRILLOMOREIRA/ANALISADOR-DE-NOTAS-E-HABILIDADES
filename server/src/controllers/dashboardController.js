@@ -6,13 +6,25 @@ const Habilidade = require('../models/Habilidade');
 // @route   GET /api/dashboard/estatisticas
 exports.getEstatisticas = async (req, res) => {
   try {
-    const { turma, disciplina, ano, trimestre, pontoCorte } = req.query;
+    const { turma, aluno, disciplina, ano, trimestre, dataInicio, dataFim, pontoCorte } = req.query;
     
     const filter = {};
     if (turma) filter.turma = turma;
+    if (aluno) filter.aluno = aluno;
     if (disciplina) filter.disciplina = disciplina;
     if (ano) filter.ano = ano;
     if (trimestre) filter.trimestre = trimestre;
+    
+    // Filtro por período específico
+    if (dataInicio || dataFim) {
+      filter.createdAt = {};
+      if (dataInicio) filter.createdAt.$gte = new Date(dataInicio);
+      if (dataFim) {
+        const fimDate = new Date(dataFim);
+        fimDate.setHours(23, 59, 59, 999); // Final do dia
+        filter.createdAt.$lte = fimDate;
+      }
+    }
     
     const avaliacoes = await Avaliacao.find(filter);
     
@@ -58,12 +70,24 @@ exports.getEstatisticas = async (req, res) => {
 // @route   GET /api/dashboard/desempenho-disciplina
 exports.getDesempenhoPorDisciplina = async (req, res) => {
   try {
-    const { turma, ano, trimestre } = req.query;
+    const { turma, aluno, ano, trimestre, dataInicio, dataFim } = req.query;
     
     const filter = {};
     if (turma) filter.turma = turma;
+    if (aluno) filter.aluno = aluno;
     if (ano) filter.ano = ano;
     if (trimestre) filter.trimestre = trimestre;
+    
+    // Filtro por período específico
+    if (dataInicio || dataFim) {
+      filter.createdAt = {};
+      if (dataInicio) filter.createdAt.$gte = new Date(dataInicio);
+      if (dataFim) {
+        const fimDate = new Date(dataFim);
+        fimDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = fimDate;
+      }
+    }
     
     const avaliacoes = await Avaliacao.find(filter)
       .populate('disciplina', 'nome codigo');
@@ -110,11 +134,23 @@ exports.getDesempenhoPorDisciplina = async (req, res) => {
 // @route   GET /api/dashboard/evolucao-trimestral
 exports.getEvolucaoTrimestral = async (req, res) => {
   try {
-    const { turma, disciplina, ano } = req.query;
+    const { turma, aluno, disciplina, ano, dataInicio, dataFim } = req.query;
     
     const filter = { ano: ano || new Date().getFullYear() };
     if (turma) filter.turma = turma;
+    if (aluno) filter.aluno = aluno;
     if (disciplina) filter.disciplina = disciplina;
+    
+    // Filtro por período específico
+    if (dataInicio || dataFim) {
+      filter.createdAt = {};
+      if (dataInicio) filter.createdAt.$gte = new Date(dataInicio);
+      if (dataFim) {
+        const fimDate = new Date(dataFim);
+        fimDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = fimDate;
+      }
+    }
     
     const evolucao = [];
     
@@ -149,7 +185,7 @@ exports.getEvolucaoTrimestral = async (req, res) => {
 // @route   GET /api/dashboard/alunos-risco
 exports.getAlunosEmRisco = async (req, res) => {
   try {
-    const { turma, ano, pontoCorte } = req.query;
+    const { turma, aluno, ano, dataInicio, dataFim, pontoCorte } = req.query;
     const corte = pontoCorte ? parseFloat(pontoCorte) : 6.0;
     
     const filter = {
@@ -158,6 +194,18 @@ exports.getAlunosEmRisco = async (req, res) => {
     };
     
     if (turma) filter.turma = turma;
+    if (aluno) filter.aluno = aluno;
+    
+    // Filtro por período específico
+    if (dataInicio || dataFim) {
+      filter.createdAt = {};
+      if (dataInicio) filter.createdAt.$gte = new Date(dataInicio);
+      if (dataFim) {
+        const fimDate = new Date(dataFim);
+        fimDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = fimDate;
+      }
+    }
     
     const avaliacoes = await Avaliacao.find(filter)
       .populate('aluno', 'nome matricula')
