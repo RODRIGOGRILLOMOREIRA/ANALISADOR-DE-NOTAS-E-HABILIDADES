@@ -22,9 +22,6 @@ import {
   DialogActions,
   Card,
   CardContent,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Alert,
   Tooltip,
   Divider,
@@ -34,11 +31,11 @@ import {
   Add,
   Edit,
   Delete,
-  ExpandMore,
   Assessment,
   Refresh,
   Save,
   Cancel,
+  School,
 } from '@mui/icons-material';
 import { avaliacaoService, turmaService, disciplinaService, alunoService } from '../services';
 import { toast } from 'react-toastify';
@@ -55,12 +52,20 @@ const TIPOS_AVALIACAO = [
   { value: 'outro', label: 'Outro', color: 'default' },
 ];
 
+const NIVEIS_HABILIDADE = [
+  { value: 'nao-desenvolvido', label: 'Não Desenvolvido', color: 'error' },
+  { value: 'em-desenvolvimento', label: 'Em Desenvolvimento', color: 'warning' },
+  { value: 'desenvolvido', label: 'Desenvolvido', color: 'info' },
+  { value: 'plenamente-desenvolvido', label: 'Plenamente Desenvolvido', color: 'success' },
+];
+
 const Avaliacoes = () => {
   const [turmas, setTurmas] = useState([]);
   const [disciplinas, setDisciplinas] = useState([]);
   const [alunos, setAlunos] = useState([]);
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [todasAvaliacoes, setTodasAvaliacoes] = useState([]); // Todas as avaliações do ano para cálculo da média anual
+  const [habilidadesDisponiveis, setHabilidadesDisponiveis] = useState([]);
   
   // Filtros
   const [filtros, setFiltros] = useState({
@@ -75,7 +80,7 @@ const Avaliacoes = () => {
   const [alunoSelecionado, setAlunoSelecionado] = useState(null);
   const [avaliacaoAtual, setAvaliacaoAtual] = useState(null);
   const [novasAvaliacoes, setNovasAvaliacoes] = useState([
-    { tipo: 'prova', descricao: '', nota: '', peso: 1 }
+    { tipo: 'prova', descricao: '', nota: '', peso: 1, habilidades: [] }
   ]);
 
   // Auto-refresh
@@ -133,6 +138,25 @@ const Avaliacoes = () => {
     }
   };
 
+  const loadHabilidadesDisponiveis = async () => {
+    try {
+      const response = await fetch(
+        `/api/avaliacoes/habilidades-disponiveis?disciplina=${filtros.disciplina}&turma=${filtros.turma}&ano=${filtros.ano}&trimestre=${filtros.trimestre}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setHabilidadesDisponiveis(data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar habilidades:', error);
+    }
+  };
+
   const loadAvaliacoes = async () => {
     try {
       setLoading(true);
@@ -167,8 +191,11 @@ const Avaliacoes = () => {
     }
   };
 
-  const handleOpenDialog = (aluno) => {
+  const handleOpenDialog = async (aluno) => {
     setAlunoSelecionado(aluno);
+    
+    // Carregar habilidades disponíveis
+    await loadHabilidadesDisponiveis();
     
     // Buscar avaliação existente para este aluno
     const avaliacaoExistente = avaliacoes.find(av => av.aluno._id === aluno._id);
@@ -182,10 +209,11 @@ const Avaliacoes = () => {
         nota: av.nota,
         peso: av.peso,
         data: av.data,
+        habilidades: av.habilidades || [],
       })));
     } else {
       setAvaliacaoAtual(null);
-      setNovasAvaliacoes([{ tipo: 'prova', descricao: '', nota: '', peso: 1 }]);
+      setNovasAvaliacoes([{ tipo: 'prova', descricao: '', nota: '', peso: 1, habilidades: [] }]);
     }
     
     setOpenDialog(true);
@@ -195,16 +223,17 @@ const Avaliacoes = () => {
     setOpenDialog(false);
     setAlunoSelecionado(null);
     setAvaliacaoAtual(null);
-    setNovasAvaliacoes([{ tipo: 'prova', descricao: '', nota: '', peso: 1 }]);
+    setNovasAvaliacoes([{ tipo: 'prova', descricao: '', nota: '', peso: 1, habilidades: [] }]);
+    setHabilidadesDisponiveis([]);
   };
 
   const handleAddAvaliacao = () => {
-    setNovasAvaliacoes([...novasAvaliacoes, { tipo: 'prova', descricao: '', nota: '', peso: 1 }]);
+    setNovasAvaliacoes([...novasAvaliacoes, { tipo: 'prova', descricao: '', nota: '', peso: 1, habilidades: [] }]);
   };
 
   const handleRemoveAvaliacao = (index) => {
     const updated = novasAvaliacoes.filter((_, i) => i !== index);
-    setNovasAvaliacoes(updated.length > 0 ? updated : [{ tipo: 'prova', descricao: '', nota: '', peso: 1 }]);
+    setNovasAvaliacoes(updated.length > 0 ? updated : [{ tipo: 'prova', descricao: '', nota: '', peso: 1, habilidades: [] }]);
   };
 
   const handleAvaliacaoChange = (index, field, value) => {
@@ -274,6 +303,13 @@ const Avaliacoes = () => {
           descricao: av.descricao,
           nota: parseFloat(av.nota),
           peso: parseFloat(av.peso) || 1,
+          habilidades: (av.habilidades || [])
+            .filter(h => h.habilidade) // Apenas habilidades selecionadas
+            .map(h => ({
+              habilidade: h.habilidade,
+              nivel: h.nivel,
+              observacao: h.observacao || ''
+            }))
         })),
       };
 
@@ -341,6 +377,32 @@ const Avaliacoes = () => {
     
     const mediaAnual = (t1 * 3 + t2 * 3 + t3 * 4) / 10;
     return mediaAnual.toFixed(2);
+  };
+
+  // Funções para manipular habilidades
+  const handleAddHabilidade = (avaliacaoIndex) => {
+    const updated = [...novasAvaliacoes];
+    if (!updated[avaliacaoIndex].habilidades) {
+      updated[avaliacaoIndex].habilidades = [];
+    }
+    updated[avaliacaoIndex].habilidades.push({
+      habilidade: '',
+      nivel: 'em-desenvolvimento',
+      observacao: ''
+    });
+    setNovasAvaliacoes(updated);
+  };
+
+  const handleRemoveHabilidade = (avaliacaoIndex, habilidadeIndex) => {
+    const updated = [...novasAvaliacoes];
+    updated[avaliacaoIndex].habilidades.splice(habilidadeIndex, 1);
+    setNovasAvaliacoes(updated);
+  };
+
+  const handleHabilidadeChange = (avaliacaoIndex, habilidadeIndex, field, value) => {
+    const updated = [...novasAvaliacoes];
+    updated[avaliacaoIndex].habilidades[habilidadeIndex][field] = value;
+    setNovasAvaliacoes(updated);
   };
 
   return (
@@ -648,6 +710,96 @@ const Avaliacoes = () => {
                     />
                   </Grid>
                 </Grid>
+
+                {/* Seção de Habilidades */}
+                <Divider sx={{ my: 2 }}>
+                  <Chip icon={<School />} label="Habilidades" size="small" />
+                </Divider>
+
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<Add />}
+                    onClick={() => handleAddHabilidade(index)}
+                    fullWidth
+                    disabled={habilidadesDisponiveis.length === 0}
+                  >
+                    Adicionar Habilidade
+                  </Button>
+                  {habilidadesDisponiveis.length === 0 && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
+                      Nenhuma habilidade cadastrada para este trimestre
+                    </Typography>
+                  )}
+                </Box>
+
+                {avaliacao.habilidades && avaliacao.habilidades.map((hab, habIndex) => (
+                  <Card key={habIndex} variant="outlined" sx={{ mb: 1, bgcolor: 'background.default' }}>
+                    <CardContent sx={{ py: 1.5 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="caption" color="text.secondary">
+                          Habilidade #{habIndex + 1}
+                        </Typography>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleRemoveHabilidade(index, habIndex)}
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </Box>
+                      
+                      <Grid container spacing={1}>
+                        <Grid item xs={12}>
+                          <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="Habilidade"
+                            value={hab.habilidade}
+                            onChange={(e) => handleHabilidadeChange(index, habIndex, 'habilidade', e.target.value)}
+                          >
+                            <MenuItem value="">Selecione...</MenuItem>
+                            {habilidadesDisponiveis.map((habilidade) => (
+                              <MenuItem key={habilidade._id} value={habilidade._id}>
+                                {habilidade.codigo} - {habilidade.descricao}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </Grid>
+                        
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="Nível de Desenvolvimento"
+                            value={hab.nivel}
+                            onChange={(e) => handleHabilidadeChange(index, habIndex, 'nivel', e.target.value)}
+                          >
+                            {NIVEIS_HABILIDADE.map((nivel) => (
+                              <MenuItem key={nivel.value} value={nivel.value}>
+                                {nivel.label}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </Grid>
+                        
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Observação"
+                            value={hab.observacao || ''}
+                            onChange={(e) => handleHabilidadeChange(index, habIndex, 'observacao', e.target.value)}
+                            placeholder="Observação (opcional)"
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                ))}
               </CardContent>
             </Card>
           ))}

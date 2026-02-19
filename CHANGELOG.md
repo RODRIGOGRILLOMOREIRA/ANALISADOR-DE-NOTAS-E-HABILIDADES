@@ -1,5 +1,150 @@
 # 📋 Changelog - Sistema Analisador de Notas e Habilidades
 
+## Versão 2.6 - 18 de Fevereiro de 2026 🆕
+
+### ✨ SISTEMA COMPLETO DE RELATÓRIOS
+
+#### 📄 Relatórios em PDF
+- ✅ **Boletim Individual do Aluno**
+  - Geração automática em PDF
+  - Dados completos do aluno (nome, matrícula, turma)
+  - Notas por disciplina e trimestre
+  - Média anual calculada: (T1×3 + T2×3 + T3×4)/10
+  - Situação por disciplina (aprovado/recuperação)
+  - Layout profissional com cabeçalho e rodapé
+  - Download automático no navegador
+
+- ✅ **Relatório de Desempenho da Turma**
+  - PDF em formato landscape (paisagem)
+  - Estatísticas gerais (total de alunos, média geral)
+  - Tabela com desempenho de todos os alunos
+  - Notas dos 3 trimestres + média individual
+  - Agrupamento por disciplina
+  - Filtros: disciplina, trimestre, ano
+
+#### 🎯 Relatórios Avançados de Habilidades
+- ✅ **Matriz de Habilidades por Aluno**
+  - Visualização completa da evolução do aluno
+  - Lista todas as habilidades avaliadas
+  - Percentual de desenvolvimento (0-100%)
+  - Quantidade de avaliações por habilidade
+  - Cálculo automático de evolução:
+    - Não Desenvolvido = 25%
+    - Em Desenvolvimento = 50%
+    - Desenvolvido = 75%
+    - Plenamente Desenvolvido = 100%
+
+- ✅ **Mapa de Calor de Habilidades**
+  - Visualização matricial: Alunos x Habilidades
+  - Cores indicando nível de desenvolvimento:
+    - 🔴 Vermelho: Não Desenvolvido
+    - 🟠 Laranja: Em Desenvolvimento
+    - 🟢 Verde: Desenvolvido
+    - 🔵 Azul: Plenamente Desenvolvido
+  - Identificação rápida de padrões
+  - Comparação entre alunos da turma
+  - Filtros por disciplina e trimestre
+
+- ✅ **Identificação de Habilidades Não Trabalhadas**
+  - Lista habilidades cadastradas mas não avaliadas
+  - Estatísticas: total, trabalhadas, pendentes
+  - Detalhamento: código, descrição, disciplina, trimestre
+  - Ferramenta essencial para planejamento pedagógico
+  - Garantia de cobertura do currículo BNCC
+
+#### 🖥️ Nova Página de Relatórios
+- ✅ Interface completa e intuitiva
+- ✅ Filtros avançados:
+  - Turma
+  - Aluno (carrega automaticamente ao selecionar turma)
+  - Disciplina
+  - Trimestre (1º, 2º ou 3º)
+  - Ano letivo
+- ✅ 5 cards informativos para cada tipo de relatório
+- ✅ Botões com ícones e loading states
+- ✅ Visualização inline de dados JSON (matriz, mapa, pendentes)
+- ✅ Tabelas responsivas com Material-UI
+- ✅ Feedback visual com toasts de sucesso/erro
+- ✅ Download automático de PDFs
+
+#### 🔌 Novos Endpoints da API
+```
+GET /api/relatorios/boletim/:alunoId?ano=2026
+GET /api/relatorios/desempenho-turma/:turmaId?disciplinaId=...&trimestre=...&ano=...
+GET /api/relatorios/matriz-habilidades/:alunoId?ano=...&turmaId=...&disciplinaId=...
+GET /api/relatorios/mapa-calor/:turmaId?disciplinaId=...&trimestre=...
+GET /api/relatorios/habilidades-nao-trabalhadas/:turmaId?disciplinaId=...&trimestre=...
+```
+
+#### 📦 Dependências Adicionadas
+- ✅ `pdfkit@^0.15.0` - Geração de PDFs profissionais
+- ✅ `chartjs-node-canvas@^4.1.6` - Preparação para gráficos em PDF (futura funcionalidade)
+
+#### 📚 Documentação
+- ✅ **RELATORIOS.md** - Documentação completa do sistema:
+  - Guia de uso detalhado
+  - Exemplos de requisições API
+  - Estruturas de resposta JSON
+  - Troubleshooting
+  - Fluxo de dados
+  - Casos de uso para professores e coordenação
+- ✅ Atualização do README.md com seção de relatórios
+- ✅ Exemplos práticos de uso
+- ✅ Atualização do CHANGELOG.md
+
+#### 🛠️ Implementação Técnica
+- ✅ Controller: `server/src/controllers/relatorioController.js`
+  - 5 funções principais
+  - Tratamento robusto de erros
+  - Validações de parâmetros
+  - Queries otimizadas com populate
+  - Funções auxiliares (calcularEvolucao, converterNivel)
+
+- ✅ Rotas: `server/src/routes/relatorios.js`
+  - Todas protegidas com autenticação JWT
+  - Documentação inline com JSDoc
+  - Import correto do middleware auth
+
+- ✅ Frontend:
+  - Página: `client/src/pages/Relatorios.js` (620 linhas)
+  - Serviços: `relatorioService` em `client/src/services/index.js`
+  - Download automático de PDFs via Blob API
+  - Estados de loading separados para cada relatório
+  - Componentização com Material-UI
+
+- ✅ Menu lateral atualizado com item "Relatórios"
+- ✅ Roteamento incluindo `/relatorios`
+
+#### 🎓 Casos de Uso Implementados
+
+**Para Professores:**
+- Gerar boletins individuais para entrega aos responsáveis
+- Analisar desempenho geral da turma
+- Visualizar evolução de habilidades de alunos específicos
+- Identificar habilidades que precisam ser trabalhadas
+- Preparar material para conselhos de classe
+
+**Para Coordenação Pedagógica:**
+- Comparar desempenho entre turmas
+- Verificar alinhamento com BNCC
+- Planejar intervenções pedagógicas
+- Gerar relatórios para apresentação à direção
+- Documentar evidências de aprendizagem
+
+**Para Gestão:**
+- Documentar desempenho institucional
+- Preparar relatórios para secretaria de educação
+- Evidências para avaliações externas
+- Base de dados para tomada de decisões estratégicas
+
+### 🔧 Correções e Melhorias
+- ✅ Correção de import do middleware auth (desestruturação)
+- ✅ Código limpo e bem documentado
+- ✅ Tratamento de erros sem expor detalhes internos
+- ✅ Performance otimizada com queries eficientes
+
+---
+
 ## Versão 2.0 - Fevereiro 2026
 
 ### ✨ Principais Novidades

@@ -12,6 +12,14 @@ import {
   Card,
   CardContent,
   TextField,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Alert,
 } from '@mui/material';
 import {
   Chart as ChartJS,
@@ -26,7 +34,7 @@ import {
   LineElement,
 } from 'chart.js';
 import { Bar, Pie, Line } from 'react-chartjs-2';
-import { dashboardService, turmaService, disciplinaService, alunoService } from '../services';
+import { dashboardService, turmaService, disciplinaService, alunoService, frequenciaService } from '../services';
 import { toast } from 'react-toastify';
 
 ChartJS.register(
@@ -59,6 +67,9 @@ const Dashboard = () => {
   const [estatisticas, setEstatisticas] = useState(null);
   const [desempenhoDisciplina, setDesempenhoDisciplina] = useState([]);
   const [evolucaoTrimestral, setEvolucaoTrimestral] = useState([]);
+  const [evolucaoHabilidades, setEvolucaoHabilidades] = useState(null);
+  const [distribuicaoHabilidades, setDistribuicaoHabilidades] = useState(null);
+  const [dashboardFrequencia, setDashboardFrequencia] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   useEffect(() => {
@@ -124,15 +135,21 @@ const Dashboard = () => {
       if (filters.dataFim) params.dataFim = filters.dataFim;
       if (filters.pontoCorte) params.pontoCorte = filters.pontoCorte;
 
-      const [stats, desempenho, evolucao] = await Promise.all([
+      const [stats, desempenho, evolucao, evolHab, distHab, dashFreq] = await Promise.all([
         dashboardService.getEstatisticas(params),
         dashboardService.getDesempenhoDisciplina(params),
         dashboardService.getEvolucaoTrimestral(params),
+        dashboardService.getEvolucaoHabilidades(params),
+        dashboardService.getDistribuicaoNiveisHabilidades(params),
+        frequenciaService.getDashboard(params),
       ]);
 
       setEstatisticas(stats);
       setDesempenhoDisciplina(desempenho);
       setEvolucaoTrimestral(evolucao);
+      setEvolucaoHabilidades(evolHab);
+      setDistribuicaoHabilidades(distHab);
+      setDashboardFrequencia(dashFreq);
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error);
     }
@@ -171,6 +188,51 @@ const Dashboard = () => {
         data: [estatisticas.aprovados, estatisticas.reprovados],
         backgroundColor: ['rgba(76, 175, 80, 0.6)', 'rgba(244, 67, 54, 0.6)'],
         borderColor: ['rgba(76, 175, 80, 1)', 'rgba(244, 67, 54, 1)'],
+        borderWidth: 1,
+      },
+    ],
+  } : null;
+
+  // Gráficos de Habilidades
+  const chartDataEvolucaoHabilidades = evolucaoHabilidades ? {
+    labels: ['1º Trimestre', '2º Trimestre', '3º Trimestre'],
+    datasets: [
+      {
+        label: 'Evolução de Habilidades (%)',
+        data: [
+          parseFloat(evolucaoHabilidades[1]?.percentual || 0),
+          parseFloat(evolucaoHabilidades[2]?.percentual || 0),
+          parseFloat(evolucaoHabilidades[3]?.percentual || 0)
+        ],
+        borderColor: 'rgb(156, 39, 176)',
+        backgroundColor: 'rgba(156, 39, 176, 0.2)',
+        tension: 0.1,
+      },
+    ],
+  } : null;
+
+  const chartDataDistribuicaoHabilidades = distribuicaoHabilidades ? {
+    labels: ['Não Desenvolvido', 'Em Desenvolvimento', 'Desenvolvido', 'Plenamente Desenvolvido'],
+    datasets: [
+      {
+        data: [
+          distribuicaoHabilidades.distribuicao?.['nao-desenvolvido']?.quantidade || 0,
+          distribuicaoHabilidades.distribuicao?.['em-desenvolvimento']?.quantidade || 0,
+          distribuicaoHabilidades.distribuicao?.['desenvolvido']?.quantidade || 0,
+          distribuicaoHabilidades.distribuicao?.['plenamente-desenvolvido']?.quantidade || 0,
+        ],
+        backgroundColor: [
+          'rgba(244, 67, 54, 0.6)',
+          'rgba(255, 152, 0, 0.6)',
+          'rgba(33, 150, 243, 0.6)',
+          'rgba(76, 175, 80, 0.6)',
+        ],
+        borderColor: [
+          'rgba(244, 67, 54, 1)',
+          'rgba(255, 152, 0, 1)',
+          'rgba(33, 150, 243, 1)',
+          'rgba(76, 175, 80, 1)',
+        ],
         borderWidth: 1,
       },
     ],
@@ -396,6 +458,287 @@ const Dashboard = () => {
             </Box>
           </Paper>
         </Grid>
+
+        {/* Gráficos de Habilidades */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              📚 Evolução de Habilidades por Trimestre
+            </Typography>
+            <Box sx={{ height: 300 }}>
+              {chartDataEvolucaoHabilidades ? (
+                <Line 
+                  data={chartDataEvolucaoHabilidades} 
+                  options={{ 
+                    maintainAspectRatio: false,
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                          callback: function(value) {
+                            return value + '%';
+                          }
+                        }
+                      }
+                    }
+                  }} 
+                />
+              ) : (
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 10 }}>
+                  Nenhum dado de habilidades disponível
+                </Typography>
+              )}
+            </Box>
+          </Paper>
+        </Grid>
+        
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              🎯 Distribuição de Níveis de Habilidades
+            </Typography>
+            <Box sx={{ height: 300, display: 'flex', justifyContent: 'center' }}>
+              {chartDataDistribuicaoHabilidades && distribuicaoHabilidades?.total > 0 ? (
+                <Pie 
+                  data={chartDataDistribuicaoHabilidades} 
+                  options={{ 
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom'
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const nivel = label.toLowerCase().replace(' ', '-');
+                            const percentual = distribuicaoHabilidades.distribuicao?.[nivel]?.percentual || 0;
+                            return `${label}: ${value} (${percentual}%)`;
+                          }
+                        }
+                      }
+                    }
+                  }} 
+                />
+              ) : (
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 10 }}>
+                  Nenhuma habilidade avaliada
+                </Typography>
+              )}
+            </Box>
+          </Paper>
+        </Grid>
+
+        {distribuicaoHabilidades && distribuicaoHabilidades.total > 0 && (
+          <Grid item xs={12}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                📊 Estatísticas de Habilidades
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card sx={{ bgcolor: 'error.light' }}>
+                    <CardContent>
+                      <Typography color="text.secondary" gutterBottom>
+                        Não Desenvolvido
+                      </Typography>
+                      <Typography variant="h4">
+                        {distribuicaoHabilidades.distribuicao?.['nao-desenvolvido']?.quantidade || 0}
+                      </Typography>
+                      <Typography variant="caption">
+                        {distribuicaoHabilidades.distribuicao?.['nao-desenvolvido']?.percentual || 0}%
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card sx={{ bgcolor: 'warning.light' }}>
+                    <CardContent>
+                      <Typography color="text.secondary" gutterBottom>
+                        Em Desenvolvimento
+                      </Typography>
+                      <Typography variant="h4">
+                        {distribuicaoHabilidades.distribuicao?.['em-desenvolvimento']?.quantidade || 0}
+                      </Typography>
+                      <Typography variant="caption">
+                        {distribuicaoHabilidades.distribuicao?.['em-desenvolvimento']?.percentual || 0}%
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card sx={{ bgcolor: 'info.light' }}>
+                    <CardContent>
+                      <Typography color="text.secondary" gutterBottom>
+                        Desenvolvido
+                      </Typography>
+                      <Typography variant="h4">
+                        {distribuicaoHabilidades.distribuicao?.['desenvolvido']?.quantidade || 0}
+                      </Typography>
+                      <Typography variant="caption">
+                        {distribuicaoHabilidades.distribuicao?.['desenvolvido']?.percentual || 0}%
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card sx={{ bgcolor: 'success.light' }}>
+                    <CardContent>
+                      <Typography color="text.secondary" gutterBottom>
+                        Plenamente Desenvolvido
+                      </Typography>
+                      <Typography variant="h4">
+                        {distribuicaoHabilidades.distribuicao?.['plenamente-desenvolvido']?.quantidade || 0}
+                      </Typography>
+                      <Typography variant="caption">
+                        {distribuicaoHabilidades.distribuicao?.['plenamente-desenvolvido']?.percentual || 0}%
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
+        )}
+
+        {/* Seção de Frequências em Tempo Real */}
+        {dashboardFrequencia && (
+          <>
+            <Grid item xs={12}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  📅 Dashboard de Frequência em Tempo Real
+                </Typography>
+                
+                {/* Cards de Estatísticas de Frequência */}
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ bgcolor: 'primary.main', color: 'white' }}>
+                      <CardContent>
+                        <Typography variant="caption">Total de Registros</Typography>
+                        <Typography variant="h4">{dashboardFrequencia.totalRegistros}</Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ bgcolor: 'success.main', color: 'white' }}>
+                      <CardContent>
+                        <Typography variant="caption">Presentes</Typography>
+                        <Typography variant="h4">{dashboardFrequencia.presentes}</Typography>
+                        <Typography variant="caption">
+                          ({dashboardFrequencia.percentualPresenca || 0}%)
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ bgcolor: 'error.main', color: 'white' }}>
+                      <CardContent>
+                        <Typography variant="caption">Faltas</Typography>
+                        <Typography variant="h4">{dashboardFrequencia.faltas}</Typography>
+                        <Typography variant="caption">
+                          ({dashboardFrequencia.percentualFaltas || 0}%)
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ bgcolor: 'warning.main', color: 'white' }}>
+                      <CardContent>
+                        <Typography variant="caption">Justificadas</Typography>
+                        <Typography variant="h4">{dashboardFrequencia.faltasJustificadas}</Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
+
+                {/* Alunos Críticos (abaixo de 75%) */}
+                {dashboardFrequencia.alunosCriticos && dashboardFrequencia.alunosCriticos.length > 0 && (
+                  <Box sx={{ mt: 3 }}>
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      <strong>⚠️ Atenção:</strong> {dashboardFrequencia.alunosCriticos.length} aluno(s) com frequência crítica (abaixo de 75%)
+                    </Alert>
+                    
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Aluno</TableCell>
+                            <TableCell align="center">Total</TableCell>
+                            <TableCell align="center">Presentes</TableCell>
+                            <TableCell align="center">Faltas</TableCell>
+                            <TableCell align="center">%</TableCell>
+                            <TableCell align="center">Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {dashboardFrequencia.alunosCriticos.map((aluno) => {
+                            const percentual = aluno.percentualPresenca;
+                            let statusColor = 'success';
+                            let statusLabel = 'Bom';
+                            
+                            if (percentual < 75) {
+                              statusColor = 'error';
+                              statusLabel = 'Crítico';
+                            } else if (percentual < 85) {
+                              statusColor = 'warning';
+                              statusLabel = 'Atenção';
+                            }
+                            
+                            return (
+                              <TableRow key={aluno.aluno._id}>
+                                <TableCell>
+                                  {aluno.aluno.nome}
+                                  <br />
+                                  <Typography variant="caption" color="text.secondary">
+                                    {aluno.aluno.matricula}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell align="center">{aluno.total}</TableCell>
+                                <TableCell align="center">
+                                  <Chip 
+                                    label={aluno.presentes} 
+                                    color="success" 
+                                    size="small" 
+                                  />
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Chip 
+                                    label={aluno.faltas} 
+                                    color="error" 
+                                    size="small" 
+                                  />
+                                </TableCell>
+                                <TableCell align="center">
+                                  <strong>{percentual}%</strong>
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Chip 
+                                    label={statusLabel} 
+                                    color={statusColor} 
+                                    size="small" 
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+                )}
+                
+                {(!dashboardFrequencia.alunosCriticos || dashboardFrequencia.alunosCriticos.length === 0) && (
+                  <Alert severity="success">
+                    ✅ Todos os alunos com frequência adequada!
+                  </Alert>
+                )}
+              </Paper>
+            </Grid>
+          </>
+        )}
       </Grid>
     </Container>
   );

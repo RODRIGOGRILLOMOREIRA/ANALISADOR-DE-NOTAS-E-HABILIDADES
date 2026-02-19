@@ -30,6 +30,8 @@ import {
   Home as HomeIcon,
   Brightness4,
   Brightness7,
+  Summarize,
+  EventNote,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
@@ -60,6 +62,8 @@ const Layout = () => {
     { text: 'Alunos', icon: <Person />, path: '/alunos' },
     { text: 'Avaliações', icon: <Assessment />, path: '/avaliacoes' },
     { text: 'Habilidades', icon: <Assignment />, path: '/habilidades' },
+    { text: 'Frequências', icon: <EventNote />, path: '/frequencias' },
+    { text: 'Relatórios', icon: <Summarize />, path: '/relatorios' },
   ];
 
   const drawer = (

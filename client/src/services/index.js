@@ -167,6 +167,16 @@ export const habilidadeService = {
     const response = await api.delete(`/habilidades/${id}`);
     return response.data;
   },
+
+  getPorAluno: async (alunoId, params = {}) => {
+    const response = await api.get(`/habilidades/aluno/${alunoId}`, { params });
+    return response.data;
+  },
+
+  getRelatorioPorTurma: async (turmaId, params = {}) => {
+    const response = await api.get(`/habilidades/relatorio/turma/${turmaId}`, { params });
+    return response.data;
+  },
 };
 
 export const dashboardService = {
@@ -192,6 +202,121 @@ export const dashboardService = {
 
   getHabilidadesDesenvolvidas: async (params = {}) => {
     const response = await api.get('/dashboard/habilidades-desenvolvidas', { params });
+    return response.data;
+  },
+
+  getEvolucaoHabilidades: async (params = {}) => {
+    const response = await api.get('/dashboard/evolucao-habilidades', { params });
+    return response.data;
+  },
+
+  getDistribuicaoNiveisHabilidades: async (params = {}) => {
+    const response = await api.get('/dashboard/distribuicao-niveis-habilidades', { params });
+    return response.data;
+  },
+};
+
+export const relatorioService = {
+  // Gera boletim do aluno em PDF e faz download
+  gerarBoletimAluno: async (alunoId, ano = null) => {
+    const params = ano ? { ano } : {};
+    const response = await api.get(`/relatorios/boletim/${alunoId}`, { 
+      params,
+      responseType: 'blob' 
+    });
+    
+    // Criar blob e fazer download
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `boletim_aluno_${alunoId}_${ano || new Date().getFullYear()}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
+
+  // Gera relatório de desempenho da turma em PDF
+  gerarRelatorioTurma: async (turmaId, params = {}) => {
+    const response = await api.get(`/relatorios/desempenho-turma/${turmaId}`, { 
+      params,
+      responseType: 'blob' 
+    });
+    
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `relatorio_turma_${turmaId}_${new Date().getTime()}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
+
+  // Retorna matriz de habilidades (JSON)
+  getMatrizHabilidades: async (alunoId, params = {}) => {
+    const response = await api.get(`/relatorios/matriz-habilidades/${alunoId}`, { params });
+    return response.data;
+  },
+
+  // Retorna mapa de calor (JSON)
+  getMapaCalor: async (turmaId, params = {}) => {
+    const response = await api.get(`/relatorios/mapa-calor/${turmaId}`, { params });
+    return response.data;
+  },
+
+  // Retorna habilidades não trabalhadas (JSON)
+  getHabilidadesNaoTrabalhadas: async (turmaId, params = {}) => {
+    const response = await api.get(`/relatorios/habilidades-nao-trabalhadas/${turmaId}`, { params });
+    return response.data;
+  },
+};
+
+export const frequenciaService = {
+  getAll: async (params = {}) => {
+    const response = await api.get('/frequencias', { params });
+    return response.data.data || response.data;
+  },
+
+  registrar: async (data) => {
+    const response = await api.post('/frequencias', data);
+    return response.data;
+  },
+
+  registrarChamadaTurma: async (turmaId, data) => {
+    const response = await api.post(`/frequencias/turma/${turmaId}/chamada`, data);
+    return response.data;
+  },
+
+  getFrequenciaAluno: async (alunoId, params = {}) => {
+    const response = await api.get(`/frequencias/aluno/${alunoId}`, { params });
+    return response.data;
+  },
+
+  getFrequenciaTurmaDia: async (turmaId, data, params = {}) => {
+    const response = await api.get(`/frequencias/turma/${turmaId}/dia/${data}`, { params });
+    return response.data;
+  },
+
+  getDashboard: async (params = {}) => {
+    const response = await api.get('/frequencias/dashboard', { params });
+    return response.data;
+  },
+
+  justificarFalta: async (id, data) => {
+    const response = await api.put(`/frequencias/${id}/justificar`, data);
+    return response.data;
+  },
+
+  update: async (id, data) => {
+    const response = await api.put(`/frequencias/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id) => {
+    const response = await api.delete(`/frequencias/${id}`);
     return response.data;
   },
 };

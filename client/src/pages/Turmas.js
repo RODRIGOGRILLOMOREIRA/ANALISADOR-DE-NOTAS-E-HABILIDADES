@@ -30,6 +30,7 @@ import { Add, Edit, Delete, Upload, Download } from '@mui/icons-material';
 import { turmaService, professorService, disciplinaService } from '../services';
 import { toast } from 'react-toastify';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 const Turmas = () => {
   const [turmas, setTurmas] = useState([]);
@@ -151,24 +152,54 @@ const Turmas = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const validData = results.data.filter(row => 
-          row.nome && row.serie && row.turno
-        );
-        setImportData(validData);
-        if (validData.length > 0) {
-          toast.success(`${validData.length} turmas encontradas no arquivo`);
-        } else {
-          toast.error('Nenhuma turma válida encontrada no arquivo');
+    const fileName = file.name.toLowerCase();
+    const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+
+    if (isExcel) {
+      // Processar arquivo Excel
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+          
+          const validData = jsonData.filter(row => 
+            row.nome && row.serie && row.turno
+          );
+          setImportData(validData);
+          if (validData.length > 0) {
+            toast.success(`${validData.length} turmas encontradas no arquivo Excel`);
+          } else {
+            toast.error('Nenhuma turma válida encontrada no arquivo');
+          }
+        } catch (error) {
+          toast.error('Erro ao ler arquivo Excel: ' + error.message);
         }
-      },
-      error: (error) => {
-        toast.error('Erro ao ler arquivo: ' + error.message);
-      }
-    });
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      // Processar arquivo CSV
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const validData = results.data.filter(row => 
+            row.nome && row.serie && row.turno
+          );
+          setImportData(validData);
+          if (validData.length > 0) {
+            toast.success(`${validData.length} turmas encontradas no arquivo CSV`);
+          } else {
+            toast.error('Nenhuma turma válida encontrada no arquivo');
+          }
+        },
+        error: (error) => {
+          toast.error('Erro ao ler arquivo CSV: ' + error.message);
+        }
+      });
+    }
   };
 
   const handleImport = async () => {
@@ -209,17 +240,30 @@ const Turmas = () => {
     }
   };
 
-  const downloadTemplate = () => {
-    const csv = 'nome,ano,serie,turno,capacidadeMaxima\n' +
-                '1º Ano A,2026,1º Ano,matutino,35\n' +
-                '2º Ano B,2026,2º Ano,vespertino,30\n' +
-                '3º Ano C,2026,3º Ano,matutino,32';
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'template_turmas.csv';
-    link.click();
+  const downloadTemplate = (format = 'csv') => {
+    if (format === 'excel') {
+      // Criar template Excel
+      const ws = XLSX.utils.json_to_sheet([
+        { nome: '1º Ano A', ano: 2026, serie: '1º Ano', turno: 'matutino', capacidadeMaxima: 35 },
+        { nome: '2º Ano B', ano: 2026, serie: '2º Ano', turno: 'vespertino', capacidadeMaxima: 30 },
+        { nome: '3º Ano C', ano: 2026, serie: '3º Ano', turno: 'matutino', capacidadeMaxima: 32 }
+      ]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Turmas');
+      XLSX.writeFile(wb, 'template_turmas.xlsx');
+    } else {
+      // Criar template CSV
+      const csv = 'nome,ano,serie,turno,capacidadeMaxima\n' +
+                  '1º Ano A,2026,1º Ano,matutino,35\n' +
+                  '2º Ano B,2026,2º Ano,vespertino,30\n' +
+                  '3º Ano C,2026,3º Ano,matutino,32';
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'template_turmas.csv';
+      link.click();
+    }
   };
 
   const getTurnoColor = (turno) => {
@@ -369,20 +413,29 @@ const Turmas = () => {
           {tabValue === 1 && (
             <Box sx={{ mt: 2 }}>
               <Alert severity="info" sx={{ mb: 2 }}>
-                <strong>Formato do arquivo CSV:</strong>
+                <strong>Formatos aceitos: CSV e Excel (.xlsx)</strong>
                 <br />
                 Colunas: nome, ano, serie, turno, capacidadeMaxima
                 <br />
                 Turnos válidos: matutino, vespertino, noturno, integral
               </Alert>
 
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
                 <Button
                   variant="outlined"
                   startIcon={<Download />}
-                  onClick={downloadTemplate}
+                  onClick={() => downloadTemplate('csv')}
                 >
                   Baixar Modelo CSV
+                </Button>
+                
+                <Button
+                  variant="outlined"
+                  startIcon={<Download />}
+                  onClick={() => downloadTemplate('excel')}
+                  color="success"
+                >
+                  Baixar Modelo Excel
                 </Button>
 
                 <Button
@@ -390,11 +443,11 @@ const Turmas = () => {
                   component="label"
                   startIcon={<Upload />}
                 >
-                  Selecionar Arquivo CSV
+                  Selecionar Arquivo
                   <input
                     type="file"
                     hidden
-                    accept=".csv"
+                    accept=".csv,.xlsx,.xls"
                     onChange={handleFileUpload}
                   />
                 </Button>

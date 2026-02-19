@@ -6,7 +6,9 @@ const {
   createHabilidade,
   updateDesempenhoAluno,
   updateHabilidade,
-  deleteHabilidade
+  deleteHabilidade,
+  getRelatorioPorTurma,
+  getHabilidadesPorAluno
 } = require('../controllers/habilidadeController');
 const { auth, isProfessorOrAdmin } = require('../middleware/auth');
 
@@ -15,6 +17,9 @@ router.use(auth);
 router.route('/')
   .get(getHabilidades)
   .post(isProfessorOrAdmin, createHabilidade);
+
+router.get('/relatorio/turma/:turmaId', getRelatorioPorTurma);
+router.get('/aluno/:alunoId', getHabilidadesPorAluno);
 
 router.put('/:id/desempenho', isProfessorOrAdmin, updateDesempenhoAluno);
 

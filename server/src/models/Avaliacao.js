@@ -61,7 +61,19 @@ const avaliacaoSchema = new mongoose.Schema({
     data: {
       type: Date,
       default: Date.now
-    }
+    },
+    habilidades: [{
+      habilidade: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Habilidade'
+      },
+      nivel: {
+        type: String,
+        enum: ['nao-desenvolvido', 'em-desenvolvimento', 'desenvolvido', 'plenamente-desenvolvido'],
+        default: 'em-desenvolvimento'
+      },
+      observacao: String
+    }]
   }],
   notaTrimestre: {
     type: Number,

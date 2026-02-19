@@ -200,3 +200,147 @@ exports.deleteAvaliacao = async (req, res) => {
     res.status(500).json({ message: 'Erro ao deletar avaliação', error: error.message });
   }
 };
+
+// @desc    Buscar habilidades disponíveis para uma avaliação
+// @route   GET /api/avaliacoes/habilidades-disponiveis
+exports.getHabilidadesDisponiveis = async (req, res) => {
+  try {
+    const { disciplina, turma, ano, trimestre } = req.query;
+    const Habilidade = require('../models/Habilidade');
+    
+    const filter = { ativo: true };
+    if (disciplina) filter.disciplina = disciplina;
+    if (turma) filter.turma = turma;
+    if (ano) filter.ano = parseInt(ano);
+    if (trimestre) filter.trimestre = parseInt(trimestre);
+    
+    const habilidades = await Habilidade.find(filter)
+      .populate('disciplina', 'nome codigo')
+      .select('codigo descricao disciplina ano trimestre');
+    
+    res.json(habilidades);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar habilidades', error: error.message });
+  }
+};
+
+// @desc    Atualizar habilidades em uma avaliação específica
+// @route   PUT /api/avaliacoes/:id/avaliacoes/:avaliacaoIndex/habilidades
+exports.updateHabilidadesAvaliacao = async (req, res) => {
+  try {
+    const { id, avaliacaoIndex } = req.params;
+    const { habilidades } = req.body; // Array de { habilidade, nivel, observacao }
+    
+    const avaliacao = await Avaliacao.findById(id);
+    
+    if (!avaliacao) {
+      return res.status(404).json({ message: 'Avaliação não encontrada' });
+    }
+    
+    if (!avaliacao.avaliacoes[avaliacaoIndex]) {
+      return res.status(404).json({ message: 'Item de avaliação não encontrado' });
+    }
+    
+    avaliacao.avaliacoes[avaliacaoIndex].habilidades = habilidades;
+    await avaliacao.save();
+    
+    // Repopular para retornar dados completos
+    const avaliacaoAtualizada = await Avaliacao.findById(id)
+      .populate('aluno', 'nome matricula')
+      .populate('disciplina', 'nome codigo')
+      .populate('turma', 'nome')
+      .populate('avaliacoes.habilidades.habilidade', 'codigo descricao');
+    
+    res.json(avaliacaoAtualizada);
+  } catch (error) {
+    res.status(400).json({ message: 'Erro ao atualizar habilidades', error: error.message });
+  }
+};
+
+// @desc    Relatório de evolução de habilidades do aluno
+// @route   GET /api/avaliacoes/aluno/:alunoId/evolucao-habilidades
+exports.getEvolucaoHabilidades = async (req, res) => {
+  try {
+    const { alunoId } = req.params;
+    const { disciplina, ano } = req.query;
+    
+    const filter = { aluno: alunoId };
+    if (disciplina) filter.disciplina = disciplina;
+    if (ano) filter.ano = parseInt(ano);
+    
+    const avaliacoes = await Avaliacao.find(filter)
+      .populate('disciplina', 'nome codigo')
+      .populate('avaliacoes.habilidades.habilidade', 'codigo descricao')
+      .sort({ ano: 1, trimestre: 1 });
+    
+    // Agrupar habilidades e calcular evolução
+    const habilidadesMap = new Map();
+    const niveisValor = {
+      'nao-desenvolvido': 0,
+      'em-desenvolvimento': 1,
+      'desenvolvido': 2,
+      'plenamente-desenvolvido': 3
+    };
+    
+    avaliacoes.forEach(av => {
+      av.avaliacoes.forEach((item, itemIndex) => {
+        if (item.habilidades && item.habilidades.length > 0) {
+          item.habilidades.forEach(hab => {
+            if (!hab.habilidade) return;
+            
+            const habId = hab.habilidade._id.toString();
+            if (!habilidadesMap.has(habId)) {
+              habilidadesMap.set(habId, {
+                habilidade: hab.habilidade,
+                registros: []
+              });
+            }
+            
+            habilidadesMap.get(habId).registros.push({
+              trimestre: av.trimestre,
+              ano: av.ano,
+              nivel: hab.nivel,
+              nivelValor: niveisValor[hab.nivel] || 0,
+              data: item.data,
+              observacao: hab.observacao
+            });
+          });
+        }
+      });
+    });
+    
+    // Calcular estatísticas de evolução
+    const evolucao = Array.from(habilidadesMap.values()).map(({ habilidade, registros }) => {
+      registros.sort((a, b) => new Date(a.data) - new Date(b.data));
+      
+      const primeiro = registros[0];
+      const ultimo = registros[registros.length - 1];
+      const evolucaoPercentual = registros.length > 1
+        ? ((ultimo.nivelValor - primeiro.nivelValor) / 3) * 100
+        : 0;
+      
+      return {
+        habilidade: {
+          _id: habilidade._id,
+          codigo: habilidade.codigo,
+          descricao: habilidade.descricao
+        },
+        nivelAtual: ultimo.nivel,
+        nivelInicial: primeiro.nivel,
+        evolucaoPercentual: evolucaoPercentual.toFixed(1),
+        totalAvaliacoes: registros.length,
+        historico: registros
+      };
+    });
+    
+    res.json({
+      aluno: alunoId,
+      disciplina,
+      ano,
+      totalHabilidades: evolucao.length,
+      habilidades: evolucao
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar evolução de habilidades', error: error.message });
+  }
+};

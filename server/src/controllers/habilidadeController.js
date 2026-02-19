@@ -125,3 +125,145 @@ exports.deleteHabilidade = async (req, res) => {
     res.status(500).json({ message: 'Erro ao deletar habilidade', error: error.message });
   }
 };
+
+// @desc    Gerar relatório de desenvolvimento por turma
+// @route   GET /api/habilidades/relatorio/turma/:turmaId
+exports.getRelatorioPorTurma = async (req, res) => {
+  try {
+    const { turmaId } = req.params;
+    const { ano, trimestre } = req.query;
+
+    const filter = { turma: turmaId, ativo: true };
+    if (ano) filter.ano = ano;
+    if (trimestre) filter.trimestre = trimestre;
+
+    const habilidades = await Habilidade.find(filter)
+      .populate('disciplina', 'nome codigo')
+      .populate('alunosDesempenho.aluno', 'nome matricula');
+
+    // Estatísticas gerais
+    const stats = {
+      totalHabilidades: habilidades.length,
+      totalAcompanhamentos: 0,
+      porNivel: {
+        'nao-desenvolvido': 0,
+        'em-desenvolvimento': 0,
+        'desenvolvido': 0,
+        'plenamente-desenvolvido': 0
+      },
+      porDisciplina: {}
+    };
+
+    habilidades.forEach(hab => {
+      hab.alunosDesempenho.forEach(ad => {
+        stats.totalAcompanhamentos++;
+        stats.porNivel[ad.nivel]++;
+
+        const discNome = hab.disciplina?.nome || 'Sem disciplina';
+        if (!stats.porDisciplina[discNome]) {
+          stats.porDisciplina[discNome] = {
+            total: 0,
+            'nao-desenvolvido': 0,
+            'em-desenvolvimento': 0,
+            'desenvolvido': 0,
+            'plenamente-desenvolvido': 0
+          };
+        }
+        stats.porDisciplina[discNome].total++;
+        stats.porDisciplina[discNome][ad.nivel]++;
+      });
+    });
+
+    res.json({
+      habilidades,
+      estatisticas: stats
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao gerar relatório', error: error.message });
+  }
+};
+
+// @desc    Buscar habilidades por aluno
+// @route   GET /api/habilidades/aluno/:alunoId
+exports.getHabilidadesPorAluno = async (req, res) => {
+  try {
+    const { alunoId } = req.params;
+    const { ano, trimestre, turma } = req.query;
+
+    const filter = { 
+      ativo: true,
+      'alunosDesempenho.aluno': alunoId 
+    };
+    
+    if (ano) filter.ano = ano;
+    if (trimestre) filter.trimestre = trimestre;
+    if (turma) filter.turma = turma;
+
+    const habilidades = await Habilidade.find(filter)
+      .populate('disciplina', 'nome codigo')
+      .populate('turma', 'nome')
+      .populate('alunosDesempenho.aluno', 'nome matricula');
+
+    // Filtrar apenas o desempenho do aluno específico e preparar resposta
+    const habilidadesAluno = habilidades.map(hab => {
+      const desempenhoAluno = hab.alunosDesempenho.find(
+        ad => ad.aluno._id.toString() === alunoId
+      );
+
+      return {
+        _id: hab._id,
+        codigo: hab.codigo,
+        descricao: hab.descricao,
+        disciplina: hab.disciplina,
+        turma: hab.turma,
+        ano: hab.ano,
+        trimestre: hab.trimestre,
+        nivel: desempenhoAluno?.nivel || 'em-desenvolvimento',
+        observacao: desempenhoAluno?.observacao || '',
+        dataAtualizacao: hab.updatedAt
+      };
+    });
+
+    // Estatísticas do aluno
+    const stats = {
+      total: habilidadesAluno.length,
+      porNivel: {
+        'nao-desenvolvido': 0,
+        'em-desenvolvimento': 0,
+        'desenvolvido': 0,
+        'plenamente-desenvolvido': 0
+      },
+      porDisciplina: {},
+      porTrimestre: {
+        1: 0,
+        2: 0,
+        3: 0
+      }
+    };
+
+    habilidadesAluno.forEach(hab => {
+      stats.porNivel[hab.nivel]++;
+      stats.porTrimestre[hab.trimestre]++;
+
+      const discNome = hab.disciplina?.nome || 'Sem disciplina';
+      if (!stats.porDisciplina[discNome]) {
+        stats.porDisciplina[discNome] = {
+          total: 0,
+          'nao-desenvolvido': 0,
+          'em-desenvolvimento': 0,
+          'desenvolvido': 0,
+          'plenamente-desenvolvido': 0
+        };
+      }
+      stats.porDisciplina[discNome].total++;
+      stats.porDisciplina[discNome][hab.nivel]++;
+    });
+
+    res.json({
+      habilidades: habilidadesAluno,
+      estatisticas: stats
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar habilidades do aluno', error: error.message });
+  }
+};

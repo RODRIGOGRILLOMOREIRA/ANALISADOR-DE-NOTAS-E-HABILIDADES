@@ -24,7 +24,9 @@ app.use('/api/turmas', require('./routes/turmas'));
 app.use('/api/alunos', require('./routes/alunos'));
 app.use('/api/avaliacoes', require('./routes/avaliacoes'));
 app.use('/api/habilidades', require('./routes/habilidades'));
+app.use('/api/frequencias', require('./routes/frequencias'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/relatorios', require('./routes/relatorios'));
 
 // Rota de teste
 app.get('/', (req, res) => {

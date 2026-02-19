@@ -18,6 +18,8 @@ import Alunos from './pages/Alunos';
 import Avaliacoes from './pages/Avaliacoes';
 import Habilidades from './pages/Habilidades';
 import Dashboard from './pages/Dashboard';
+import Relatorios from './pages/Relatorios';
+import Frequencias from './pages/Frequencias';
 
 function App() {
   return (
@@ -35,7 +37,9 @@ function App() {
               <Route path="/alunos" element={<Alunos />} />
               <Route path="/avaliacoes" element={<Avaliacoes />} />
               <Route path="/habilidades" element={<Habilidades />} />
+              <Route path="/frequencias" element={<Frequencias />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/relatorios" element={<Relatorios />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/" replace />} />

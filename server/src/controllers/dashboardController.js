@@ -271,3 +271,119 @@ exports.getHabilidadesDesenvolvidas = async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar habilidades desenvolvidas', error: error.message });
   }
 };
+
+// @desc    Dashboard - Evolução de habilidades por avaliações
+// @route   GET /api/dashboard/evolucao-habilidades
+exports.getEvolucaoHabilidades = async (req, res) => {
+  try {
+    const { turma, aluno, disciplina, ano } = req.query;
+    
+    const filter = {};
+    if (turma) filter.turma = turma;
+    if (aluno) filter.aluno = aluno;
+    if (disciplina) filter.disciplina = disciplina;
+    if (ano) filter.ano = parseInt(ano) || new Date().getFullYear();
+    
+    const avaliacoes = await Avaliacao.find(filter)
+      .populate('avaliacoes.habilidades.habilidade', 'codigo descricao')
+      .populate('aluno', 'nome matricula')
+      .sort({ trimestre: 1 });
+    
+    const niveisValor = {
+      'nao-desenvolvido': 0,
+      'em-desenvolvimento': 1,
+      'desenvolvido': 2,
+      'plenamente-desenvolvido': 3
+    };
+    
+    // Agrupar por trimestre
+    const evolucaoPorTrimestre = {
+      1: { total: 0, soma: 0, media: 0 },
+      2: { total: 0, soma: 0, media: 0 },
+      3: { total: 0, soma: 0, media: 0 }
+    };
+    
+    avaliacoes.forEach(av => {
+      av.avaliacoes.forEach(item => {
+        if (item.habilidades && item.habilidades.length > 0) {
+          item.habilidades.forEach(hab => {
+            const valor = niveisValor[hab.nivel] || 0;
+            evolucaoPorTrimestre[av.trimestre].soma += valor;
+            evolucaoPorTrimestre[av.trimestre].total++;
+          });
+        }
+      });
+    });
+    
+    // Calcular médias e percentuais
+    Object.keys(evolucaoPorTrimestre).forEach(trimestre => {
+      const data = evolucaoPorTrimestre[trimestre];
+      if (data.total > 0) {
+        data.media = (data.soma / data.total).toFixed(2);
+        data.percentual = ((data.soma / (data.total * 3)) * 100).toFixed(1); // 3 é o valor máximo
+      } else {
+        data.media = 0;
+        data.percentual = 0;
+      }
+    });
+    
+    res.json(evolucaoPorTrimestre);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar evolução de habilidades', error: error.message });
+  }
+};
+
+// @desc    Dashboard - Distribuição de níveis de habilidades
+// @route   GET /api/dashboard/distribuicao-niveis-habilidades
+exports.getDistribuicaoNiveisHabilidades = async (req, res) => {
+  try {
+    const { turma, disciplina, ano, trimestre } = req.query;
+    
+    const filter = {};
+    if (turma) filter.turma = turma;
+    if (disciplina) filter.disciplina = disciplina;
+    if (ano) filter.ano = parseInt(ano) || new Date().getFullYear();
+    if (trimestre) filter.trimestre = parseInt(trimestre);
+    
+    const avaliacoes = await Avaliacao.find(filter)
+      .populate('avaliacoes.habilidades.habilidade', 'codigo descricao');
+    
+    const distribuicao = {
+      'nao-desenvolvido': 0,
+      'em-desenvolvimento': 0,
+      'desenvolvido': 0,
+      'plenamente-desenvolvido': 0
+    };
+    
+    let totalHabilidades = 0;
+    
+    avaliacoes.forEach(av => {
+      av.avaliacoes.forEach(item => {
+        if (item.habilidades && item.habilidades.length > 0) {
+          item.habilidades.forEach(hab => {
+            distribuicao[hab.nivel]++;
+            totalHabilidades++;
+          });
+        }
+      });
+    });
+    
+    // Calcular percentuais
+    const distribuicaoPercentual = {};
+    Object.keys(distribuicao).forEach(nivel => {
+      distribuicaoPercentual[nivel] = {
+        quantidade: distribuicao[nivel],
+        percentual: totalHabilidades > 0 
+          ? ((distribuicao[nivel] / totalHabilidades) * 100).toFixed(1)
+          : 0
+      };
+    });
+    
+    res.json({
+      total: totalHabilidades,
+      distribuicao: distribuicaoPercentual
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar distribuição de níveis', error: error.message });
+  }
+};

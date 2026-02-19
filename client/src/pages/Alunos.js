@@ -31,6 +31,7 @@ import { Add, Edit, Delete, Upload, Download } from '@mui/icons-material';
 import { alunoService, turmaService } from '../services';
 import { toast } from 'react-toastify';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 const Alunos = () => {
   const [alunos, setAlunos] = useState([]);
@@ -157,24 +158,54 @@ const Alunos = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const validData = results.data.filter(row => 
-          row.nome && row.matricula
-        );
-        setImportData(validData);
-        if (validData.length > 0) {
-          toast.success(`${validData.length} alunos encontrados no arquivo`);
-        } else {
-          toast.error('Nenhum aluno válido encontrado no arquivo');
+    const fileName = file.name.toLowerCase();
+    const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+
+    if (isExcel) {
+      // Processar arquivo Excel
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+          
+          const validData = jsonData.filter(row => 
+            row.nome && row.matricula
+          );
+          setImportData(validData);
+          if (validData.length > 0) {
+            toast.success(`${validData.length} alunos encontrados no arquivo Excel`);
+          } else {
+            toast.error('Nenhum aluno válido encontrado no arquivo');
+          }
+        } catch (error) {
+          toast.error('Erro ao ler arquivo Excel: ' + error.message);
         }
-      },
-      error: (error) => {
-        toast.error('Erro ao ler arquivo: ' + error.message);
-      }
-    });
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      // Processar arquivo CSV
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const validData = results.data.filter(row => 
+            row.nome && row.matricula
+          );
+          setImportData(validData);
+          if (validData.length > 0) {
+            toast.success(`${validData.length} alunos encontrados no arquivo CSV`);
+          } else {
+            toast.error('Nenhum aluno válido encontrado no arquivo');
+          }
+        },
+        error: (error) => {
+          toast.error('Erro ao ler arquivo CSV: ' + error.message);
+        }
+      });
+    }
   };
 
   const handleImport = async () => {
@@ -228,17 +259,54 @@ const Alunos = () => {
     }
   };
 
-  const downloadTemplate = () => {
-    const csv = 'nome,matricula,dataNascimento,turma,responsavel_nome,responsavel_telefone,responsavel_email\n' +
-                'João Silva,2026001,2010-05-15,1º Ano A,Maria Silva,(11) 98765-4321,maria@email.com\n' +
-                'Ana Santos,2026002,2011-08-20,2º Ano B,Carlos Santos,(11) 91234-5678,carlos@email.com\n' +
-                'Pedro Costa,2026003,2009-03-10,3º Ano C,Lucia Costa,(11) 99876-5432,lucia@email.com';
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'template_alunos.csv';
-    link.click();
+  const downloadTemplate = (format = 'csv') => {
+    if (format === 'excel') {
+      // Criar template Excel
+      const ws = XLSX.utils.json_to_sheet([
+        {
+          nome: 'João Silva',
+          matricula: '2026001',
+          dataNascimento: '2010-05-15',
+          turma: '1º Ano A',
+          responsavel_nome: 'Maria Silva',
+          responsavel_telefone: '(11) 98765-4321',
+          responsavel_email: 'maria@email.com'
+        },
+        {
+          nome: 'Ana Santos',
+          matricula: '2026002',
+          dataNascimento: '2011-08-20',
+          turma: '2º Ano B',
+          responsavel_nome: 'Carlos Santos',
+          responsavel_telefone: '(11) 91234-5678',
+          responsavel_email: 'carlos@email.com'
+        },
+        {
+          nome: 'Pedro Costa',
+          matricula: '2026003',
+          dataNascimento: '2009-03-10',
+          turma: '3º Ano C',
+          responsavel_nome: 'Lucia Costa',
+          responsavel_telefone: '(11) 99876-5432',
+          responsavel_email: 'lucia@email.com'
+        }
+      ]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Alunos');
+      XLSX.writeFile(wb, 'template_alunos.xlsx');
+    } else {
+      // Criar template CSV
+      const csv = 'nome,matricula,dataNascimento,turma,responsavel_nome,responsavel_telefone,responsavel_email\n' +
+                  'João Silva,2026001,2010-05-15,1º Ano A,Maria Silva,(11) 98765-4321,maria@email.com\n' +
+                  'Ana Santos,2026002,2011-08-20,2º Ano B,Carlos Santos,(11) 91234-5678,carlos@email.com\n' +
+                  'Pedro Costa,2026003,2009-03-10,3º Ano C,Lucia Costa,(11) 99876-5432,lucia@email.com';
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'template_alunos.csv';
+      link.click();
+    }
   };
 
   const formatDate = (dateString) => {
@@ -417,7 +485,7 @@ const Alunos = () => {
           {tabValue === 1 && (
             <Box sx={{ mt: 2 }}>
               <Alert severity="info" sx={{ mb: 2 }}>
-                <strong>Formato do arquivo CSV:</strong>
+                <strong>Formatos aceitos: CSV e Excel (.xlsx)</strong>
                 <br />
                 Colunas: nome, matricula, dataNascimento, turma, responsavel_nome, responsavel_telefone, responsavel_email
                 <br />
@@ -426,13 +494,22 @@ const Alunos = () => {
                 Turma: nome exato da turma cadastrada
               </Alert>
 
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
                 <Button
                   variant="outlined"
                   startIcon={<Download />}
-                  onClick={downloadTemplate}
+                  onClick={() => downloadTemplate('csv')}
                 >
                   Baixar Modelo CSV
+                </Button>
+                
+                <Button
+                  variant="outlined"
+                  startIcon={<Download />}
+                  onClick={() => downloadTemplate('excel')}
+                  color="success"
+                >
+                  Baixar Modelo Excel
                 </Button>
 
                 <Button
@@ -440,11 +517,11 @@ const Alunos = () => {
                   component="label"
                   startIcon={<Upload />}
                 >
-                  Selecionar Arquivo CSV
+                  Selecionar Arquivo
                   <input
                     type="file"
                     hidden
-                    accept=".csv"
+                    accept=".csv,.xlsx,.xls"
                     onChange={handleFileUpload}
                   />
                 </Button>
