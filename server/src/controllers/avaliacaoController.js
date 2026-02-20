@@ -345,6 +345,94 @@ exports.getEvolucaoHabilidades = async (req, res) => {
   }
 };
 
+// @desc    Gerar template de avaliações por turma
+// @route   GET /api/avaliacoes/template/:turmaId
+exports.gerarTemplatePorTurma = async (req, res) => {
+  try {
+    const { turmaId } = req.params;
+    const { disciplinaId, trimestre, ano } = req.query;
+    
+    const Aluno = require('../models/Aluno');
+    const Turma = require('../models/Turma');
+    const Disciplina = require('../models/Disciplina');
+    const Habilidade = require('../models/Habilidade');
+    
+    // Buscar turma
+    const turma = await Turma.findById(turmaId).populate('disciplinas.disciplina');
+    if (!turma) {
+      return res.status(404).json({ message: 'Turma não encontrada' });
+    }
+    
+    // Buscar alunos da turma
+    const alunos = await Aluno.find({ turma: turmaId, ativo: true }).sort({ nome: 1 });
+    
+    if (alunos.length === 0) {
+      return res.status(400).json({ message: 'Nenhum aluno encontrado nesta turma' });
+    }
+    
+    // Buscar disciplina se especificada
+    let disciplina = null;
+    if (disciplinaId) {
+      disciplina = await Disciplina.findById(disciplinaId);
+    }
+    
+    // Buscar habilidades disponíveis para a disciplina (se especificada)
+    let habilidadesDisponiveis = [];
+    if (disciplinaId) {
+      habilidadesDisponiveis = await Habilidade.find({ 
+        disciplina: disciplinaId, 
+        ativo: true 
+      }).select('codigo descricao').sort({ codigo: 1 });
+    }
+    
+    // Gerar template com dados dos alunos
+    const template = alunos.map(aluno => ({
+      matricula_aluno: aluno.matricula,
+      aluno_nome: aluno.nome,
+      turma_nome: turma.nome,
+      codigo_disciplina: disciplina?.codigo || '',
+      disciplina_nome: disciplina?.nome || '',
+      tipo_avaliacao: 'prova', // Valor padrão
+      descricao: '',
+      nota: '',
+      peso: '1',
+      data_avaliacao: new Date().toISOString().split('T')[0],
+      trimestre: trimestre || '1',
+      ano: ano || new Date().getFullYear(),
+      habilidades_codigos: '', // Ex: EF06MA01,EF06MA02 ou EF06MA01;EF06MA02
+      observacoes: ''
+    }));
+    
+    res.json({
+      turma: {
+        id: turma._id,
+        nome: turma.nome,
+        totalAlunos: alunos.length
+      },
+      disciplina: disciplina ? {
+        id: disciplina._id,
+        nome: disciplina.nome,
+        codigo: disciplina.codigo
+      } : null,
+      habilidadesDisponiveis: habilidadesDisponiveis.map(h => ({
+        codigo: h.codigo,
+        descricao: h.descricao
+      })),
+      template,
+      instrucoes: {
+        habilidades: 'Preencha a coluna "habilidades_codigos" com os códigos das habilidades separados por vírgula ou ponto e vírgula. Exemplo: EF06MA01,EF06MA02 ou EF06MA01;EF06MA02',
+        tipos_avaliacao: ['prova', 'trabalho', 'participacao', 'simulado', 'atividade', 'seminario', 'projeto', 'pesquisa', 'outro'],
+        trimestre: 'Valores: 1, 2 ou 3',
+        nota: 'Valor de 0 a 10',
+        peso: 'Valor decimal, padrão 1'
+      }
+    });
+    
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao gerar template', error: error.message });
+  }
+};
+
 // @desc    Importar avaliações em lote (CSV/Excel)
 // @route   POST /api/avaliacoes/importar
 exports.importarAvaliacoes = async (req, res) => {
@@ -359,6 +447,7 @@ exports.importarAvaliacoes = async (req, res) => {
     const Disciplina = require('../models/Disciplina');
     const Turma = require('../models/Turma');
     const Professor = require('../models/Professor');
+    const Habilidade = require('../models/Habilidade');
     
     const resultados = {
       sucesso: 0,
@@ -449,13 +538,40 @@ exports.importarAvaliacoes = async (req, res) => {
         // Adicionar avaliações (notas)
         const avaliacoesArray = [];
         if (item.nota) {
-          avaliacoesArray.push({
+          const avaliacaoItem = {
             tipo: item.tipo_avaliacao || 'prova',
             descricao: item.descricao || '',
             nota: parseFloat(item.nota),
             peso: parseFloat(item.peso) || 1,
             data: item.data_avaliacao ? new Date(item.data_avaliacao) : new Date()
-          });
+          };
+          
+          // Processar habilidades se fornecidas
+          if (item.habilidades_codigos) {
+            // Separar por vírgula ou ponto e vírgula
+            const codigosHabilidades = item.habilidades_codigos
+              .split(/[,;]/)
+              .map(codigo => codigo.trim())
+              .filter(codigo => codigo.length > 0);
+            
+            if (codigosHabilidades.length > 0) {
+              // Buscar habilidades pelos códigos
+              const habilidadesEncontradas = await Habilidade.find({
+                codigo: { $in: codigosHabilidades },
+                disciplina: disciplinaId,
+                ativo: true
+              }).select('_id codigo');
+              
+              // Adicionar habilidades à avaliação
+              avaliacaoItem.habilidades = habilidadesEncontradas.map(hab => ({
+                habilidade: hab._id,
+                nivel: 'em-desenvolvimento', // Padrão
+                observacao: ''
+              }));
+            }
+          }
+          
+          avaliacoesArray.push(avaliacaoItem);
         }
         
         if (avaliacoesArray.length > 0) {

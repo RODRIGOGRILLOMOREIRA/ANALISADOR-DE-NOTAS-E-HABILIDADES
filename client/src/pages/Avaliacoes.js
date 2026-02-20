@@ -102,6 +102,9 @@ const Avaliacoes = () => {
   const [openImportDialog, setOpenImportDialog] = useState(false);
   const [importData, setImportData] = useState([]);
   const [tabValue, setTabValue] = useState(0);
+  const [turmaSelecionadaTemplate, setTurmaSelecionadaTemplate] = useState('');
+  const [disciplinaSelecionadaTemplate, setDisciplinaSelecionadaTemplate] = useState('');
+  const [habilidadesTemplate, setHabilidadesTemplate] = useState([]);
 
   useEffect(() => {
     loadTurmas();
@@ -504,55 +507,94 @@ const Avaliacoes = () => {
     }
   };
 
-  const downloadTemplate = (format = 'csv') => {
-    if (format === 'excel') {
-      const ws = XLSX.utils.json_to_sheet([
-        {
-          matricula_aluno: '2026001',
-          aluno_nome: 'João Silva',
-          codigo_disciplina: 'MAT',
-          disciplina_nome: 'Matemática',
-          turma_nome: '1º Ano A',
-          professor_nome: 'Prof. Carlos',
-          ano: 2026,
-          trimestre: 1,
-          tipo_avaliacao: 'prova',
-          descricao: 'Prova Bimestral',
-          nota: 8.5,
-          peso: 3,
-          data_avaliacao: '2026-03-15',
-          observacoes: ''
-        },
-        {
-          matricula_aluno: '2026002',
-          aluno_nome: 'Ana Santos',
-          codigo_disciplina: 'POR',
-          disciplina_nome: 'Português',
-          turma_nome: '2º Ano B',
-          professor_nome: 'Prof. Maria',
-          ano: 2026,
-          trimestre: 1,
-          tipo_avaliacao: 'trabalho',
-          descricao: 'Trabalho em Grupo',
-          nota: 9.0,
-          peso: 2,
-          data_avaliacao: '2026-03-20',
-          observacoes: 'Excelente apresentação'
+  const downloadTemplate = async (format = 'csv') => {
+    try {
+      // Se turma e disciplina estiverem selecionadas, busca template real da turma
+      if (turmaSelecionadaTemplate && disciplinaSelecionadaTemplate) {
+        setLoading(true);
+        const data = await avaliacaoService.getTemplatePorTurma(turmaSelecionadaTemplate, {
+          disciplinaId: disciplinaSelecionadaTemplate,
+          trimestre: filtros.trimestre,
+          ano: filtros.ano
+        });
+        
+        // Armazenar habilidades disponíveis para exibir
+        setHabilidadesTemplate(data.habilidadesDisponiveis || []);
+        
+        if (format === 'excel') {
+          const ws = XLSX.utils.json_to_sheet(data.template);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
+          XLSX.writeFile(wb, `template_avaliacoes_${data.turma.nome}_${data.disciplina.nome}.xlsx`);
+        } else {
+          const csv = Papa.unparse(data.template);
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = `template_avaliacoes_${data.turma.nome}_${data.disciplina.nome}.csv`;
+          link.click();
         }
-      ]);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
-      XLSX.writeFile(wb, 'template_avaliacoes.xlsx');
-    } else {
-      const csv = 'matricula_aluno,aluno_nome,codigo_disciplina,disciplina_nome,turma_nome,professor_nome,ano,trimestre,tipo_avaliacao,descricao,nota,peso,data_avaliacao,observacoes\n' +
-                  '2026001,João Silva,MAT,Matemática,1º Ano A,Prof. Carlos,2026,1,prova,Prova Bimestral,8.5,3,2026-03-15,\n' +
-                  '2026002,Ana Santos,POR,Português,2º Ano B,Prof. Maria,2026,1,trabalho,Trabalho em Grupo,9.0,2,2026-03-20,Excelente apresentação';
-      
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'template_avaliacoes.csv';
-      link.click();
+        
+        toast.success(`Template de ${data.turma.nome} - ${data.disciplina.nome} baixado com ${data.turma.totalAlunos} alunos`);
+        setLoading(false);
+      } else {
+        // Template genérico de exemplo
+        const templateExemplo = [
+          {
+            matricula_aluno: '2026001',
+            aluno_nome: 'João Silva',
+            codigo_disciplina: 'MAT',
+            disciplina_nome: 'Matemática',
+            turma_nome: '1º Ano A',
+            professor_nome: 'Prof. Carlos',
+            ano: 2026,
+            trimestre: 1,
+            tipo_avaliacao: 'prova',
+            descricao: 'Prova Bimestral',
+            nota: 8.5,
+            peso: 3,
+            data_avaliacao: '2026-03-15',
+            habilidades_codigos: 'EF06MA01,EF06MA02',
+            observacoes: ''
+          },
+          {
+            matricula_aluno: '2026002',
+            aluno_nome: 'Ana Santos',
+            codigo_disciplina: 'POR',
+            disciplina_nome: 'Português',
+            turma_nome: '2º Ano B',
+            professor_nome: 'Prof. Maria',
+            ano: 2026,
+            trimestre: 1,
+            tipo_avaliacao: 'trabalho',
+            descricao: 'Trabalho em Grupo',
+            nota: 9.0,
+            peso: 2,
+            data_avaliacao: '2026-03-20',
+            habilidades_codigos: 'EF06LP01;EF06LP02',
+            observacoes: 'Excelente apresentação'
+          }
+        ];
+        
+        if (format === 'excel') {
+          const ws = XLSX.utils.json_to_sheet(templateExemplo);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
+          XLSX.writeFile(wb, 'template_avaliacoes_exemplo.xlsx');
+        } else {
+          const csv = Papa.unparse(templateExemplo);
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'template_avaliacoes_exemplo.csv';
+          link.click();
+        }
+        
+        toast.info('Selecione uma turma e disciplina para baixar template específico');
+      }
+    } catch (error) {
+      toast.error('Erro ao gerar template: ' + error.message);
+      setLoading(false);
     }
   };
 
@@ -1103,6 +1145,79 @@ const Avaliacoes = () => {
                 Campos obrigatórios: matricula_aluno ou aluno_nome, codigo_disciplina ou disciplina_nome, turma_nome, nota.
               </Alert>
 
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+                📥 Baixar Template Personalizado por Turma
+              </Typography>
+              
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Selecione a Turma"
+                    value={turmaSelecionadaTemplate}
+                    onChange={(e) => setTurmaSelecionadaTemplate(e.target.value)}
+                  >
+                    <MenuItem value="">
+                      <em>Selecione uma turma</em>
+                    </MenuItem>
+                    {turmas.map((turma) => (
+                      <MenuItem key={turma._id} value={turma._id}>
+                        {turma.nome} ({turma.serie})
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Selecione a Disciplina"
+                    value={disciplinaSelecionadaTemplate}
+                    onChange={(e) => setDisciplinaSelecionadaTemplate(e.target.value)}
+                    disabled={!turmaSelecionadaTemplate}
+                  >
+                    <MenuItem value="">
+                      <em>Selecione uma disciplina</em>
+                    </MenuItem>
+                    {disciplinas.map((disciplina) => (
+                      <MenuItem key={disciplina._id} value={disciplina._id}>
+                        {disciplina.codigo} - {disciplina.nome}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+              </Grid>
+
+              {turmaSelecionadaTemplate && disciplinaSelecionadaTemplate && (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  O template será gerado com todos os alunos da turma selecionada!
+                </Alert>
+              )}
+
+              {habilidadesTemplate.length > 0 && (
+                <Paper sx={{ p: 2, mb: 2, bgcolor: 'info.lighter' }}>
+                  <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+                    🎯 Habilidades Disponíveis para esta Disciplina:
+                  </Typography>
+                  <Box sx={{ maxHeight: 150, overflow: 'auto' }}>
+                    {habilidadesTemplate.map((hab, index) => (
+                      <Chip
+                        key={index}
+                        label={`${hab.codigo}: ${hab.descricao}`}
+                        size="small"
+                        sx={{ m: 0.5 }}
+                      />
+                    ))}
+                  </Box>
+                  <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                    Use estes códigos na coluna "habilidades_codigos" separados por vírgula ou ponto e vírgula
+                  </Typography>
+                </Paper>
+              )}
+
               <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
                 <Button
                   variant="outlined"
@@ -1121,6 +1236,8 @@ const Avaliacoes = () => {
                   Baixar Template Excel
                 </Button>
               </Box>
+
+              <Divider sx={{ my: 2 }} />
 
               <Button
                 variant="contained"
@@ -1149,7 +1266,7 @@ const Avaliacoes = () => {
                         <ListItem key={index}>
                           <ListItemText
                             primary={`${item.aluno_nome || item.matricula_aluno} - ${item.disciplina_nome || item.codigo_disciplina}`}
-                            secondary={`Nota: ${item.nota} | Turma: ${item.turma_nome} | ${item.tipo_avaliacao || 'prova'}`}
+                            secondary={`Nota: ${item.nota} | Turma: ${item.turma_nome} | ${item.tipo_avaliacao || 'prova'} ${item.habilidades_codigos ? '| 🎯 ' + item.habilidades_codigos : ''}`}
                           />
                         </ListItem>
                       ))}
@@ -1189,14 +1306,51 @@ const Avaliacoes = () => {
                   • descricao<br />
                   • peso (padrão: 1)<br />
                   • data_avaliacao (formato: AAAA-MM-DD)<br />
+                  • <strong>habilidades_codigos</strong> 🆕 (códigos separados por vírgula ou ponto e vírgula) <br />
                   • observacoes
                 </Typography>
               </Paper>
+              
+              <Paper sx={{ p: 2, mb: 2, bgcolor: 'success.lighter' }}>
+                <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+                  🎯 Como Preencher a Coluna de Habilidades:
+                </Typography>
+                <Typography variant="body2" component="div">
+                  A coluna <strong>habilidades_codigos</strong> permite vincular habilidades BNCC à avaliação.<br /><br />
+                  
+                  <strong>Formato aceito:</strong><br />
+                  • Códigos separados por <strong>vírgula</strong>: EF06MA01,EF06MA02,EF06MA03<br />
+                  • Códigos separados por <strong>ponto e vírgula</strong>: EF06MA01;EF06MA02;EF06MA03<br />
+                  • Também aceita com espaços: EF06MA01, EF06MA02, EF06MA03<br />
+                  <br />
+                  
+                  <strong>Exemplos práticos:</strong><br />
+                  • Matemática: EF06MA01,EF06MA02<br />
+                  • Português: EF06LP01;EF06LP02;EF06LP03<br />
+                  • História: EF06HI01,EF06HI02<br />
+                  <br />
+                  
+                  <strong>IMPORTANTE:</strong><br />
+                  • Os códigos devem corresponder a habilidades já cadastradas no sistema<br />
+                  • Use o botão "Baixar Template" selecionando turma e disciplina para ver as habilidades disponíveis<br />
+                  • Habilidades não encontradas serão ignoradas sem gerar erro<br />
+                  • Deixe a coluna vazia se não quiser vincular habilidades
+                </Typography>
+              </Paper>
+              
               <Alert severity="warning">
                 <Typography variant="body2">
                   <strong>Importante:</strong> O sistema buscará alunos pela matrícula ou nome,
                   disciplinas pelo código ou nome, e turmas pelo nome. Certifique-se de que
                   os dados correspondem aos cadastrados no sistema.
+                </Typography>
+              </Alert>
+              
+              <Alert severity="info" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>Dica:</strong> Selecione uma turma e disciplina específicas na aba "Upload" 
+                  e baixe o template personalizado. Ele virá com todos os alunos da turma e a lista 
+                  de habilidades disponíveis para aquela disciplina.
                 </Typography>
               </Alert>
             </Box>

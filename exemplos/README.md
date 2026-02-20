@@ -43,7 +43,17 @@ Arquivo de exemplo com avaliações (notas) de alunos.
 - `descricao` - Descrição da avaliação
 - `peso` - Peso da nota (padrão: 1)
 - `data_avaliacao` - Data no formato AAAA-MM-DD
+- **`habilidades_codigos`** 🎯 - Códigos das habilidades BNCC separados por vírgula ou ponto e vírgula (Ex: EF06MA01,EF06MA02)
 - `observacoes` - Observações sobre a avaliação
+
+**🎯 Como Preencher Habilidades:**
+A coluna `habilidades_codigos` permite vincular habilidades BNCC à avaliação. Você pode:
+- Separar por vírgula: `EF06MA01,EF06MA02,EF06MA03`
+- Separar por ponto e vírgula: `EF06MA01;EF06MA02;EF06MA03`
+- Usar espaços: `EF06MA01, EF06MA02, EF06MA03`
+- Deixar vazio se não quiser vincular habilidades
+
+O sistema buscará automaticamente as habilidades cadastradas e vinculará à avaliação.
 
 ### 4. `frequencias_exemplo.csv` ✨ NOVO
 Arquivo de exemplo com registros de frequência (presença/falta) dos alunos.
@@ -81,8 +91,9 @@ Arquivo de exemplo com registros de frequência (presença/falta) dos alunos.
 1. **IMPORTANTE:** Certifique-se de que alunos, turmas e disciplinas já foram cadastrados
 2. Acesse o sistema e vá em **Avaliações**
 3. Clique no botão **Importar**
-4. Clique em **Selecionar Arquivo** e escolha `avaliacoes_exemplo.csv`
-5. Revise os dados e clique em **Importar**
+4. **RECOMENDADO:** Selecione uma turma e disciplina específicas para baixar um template personalizado com todos os alunos e habilidades disponíveis
+5. Clique em **Selecionar Arquivo** e escolha `avaliacoes_exemplo.csv` ou o template personalizado
+6. Revise os dados e clique em **Importar**
 
 ### Importar Frequências:
 1. **IMPORTANTE:** Certifique-se de que alunos, turmas e disciplinas já foram cadastrados

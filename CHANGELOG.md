@@ -1,6 +1,83 @@
 # 📋 Changelog - Sistema Analisador de Notas e Habilidades
 
-## Versão 2.7 - Semana 3 de Fevereiro de 2026 🆕
+## Versão 2.8 - 20 de Fevereiro de 2026 🆕
+
+### ✨ MELHORIAS NO SISTEMA DE IMPORTAÇÃO DE AVALIAÇÕES
+
+#### 🎯 Vinculação Automática de Habilidades BNCC
+- ✅ **Nova Coluna `habilidades_codigos`**
+  - Campo opcional para vincular habilidades BNCC às avaliações
+  - Aceita códigos separados por vírgula (,) ou ponto e vírgula (;)
+  - Exemplo: `EF06MA01,EF06MA02` ou `EF06MA01;EF06MA02;EF06MA03`
+  - Sistema busca automaticamente as habilidades cadastradas
+  - Habilidades são vinculadas à avaliação para análise pedagógica
+  - Habilidades não encontradas são ignoradas sem gerar erro
+
+- ✅ **Processamento Inteligente**
+  - Backend busca habilidades pelos códigos fornecidos
+  - Valida que as habilidades pertencem à disciplina da avaliação
+  - Vincula automaticamente com nível padrão "em-desenvolvimento"
+  - Permite análise posterior do desenvolvimento das habilidades
+
+#### 📥 Template Personalizado por Turma
+- ✅ **Novo Endpoint: GET /api/avaliacoes/template/:turmaId**
+  - Gera template CSV/Excel específico para uma turma
+  - Inclui todos os alunos da turma com dados pré-preenchidos
+  - Aceita parâmetros: `disciplinaId`, `trimestre`, `ano`
+  - Reduz erros de digitação de nomes e matrículas
+  - Facilita o trabalho do professor
+
+- ✅ **Frontend Atualizado**
+  - Seletores de Turma e Disciplina no diálogo de importação
+  - Exibição visual das habilidades disponíveis para a disciplina selecionada
+  - Chips coloridos mostrando código e descrição de cada habilidade
+  - Template baixado contém nome do arquivo com turma e disciplina
+  - Mensagem de sucesso indica quantos alunos foram incluídos
+
+- ✅ **Instruções Detalhadas**
+  - Nova seção "Como Preencher a Coluna de Habilidades"
+  - Exemplos práticos de formatação
+  - Explicação clara sobre códigos BNCC
+  - Alertas e dicas de melhor uso
+  - Instruções visuais no diálogo de importação
+
+#### 📦 Arquivos Atualizados
+- ✅ **exemplos/avaliacoes_exemplo.csv**
+  - Atualizado com coluna `habilidades_codigos`
+  - 10 exemplos práticos de diferentes formatos
+  - Códigos BNCC de exemplo para diferentes disciplinas
+  - Demonstra uso de vírgula e ponto e vírgula
+
+- ✅ **exemplos/README.md**
+  - Seção completa sobre como preencher habilidades
+  - Instruções passo a passo para template personalizado
+  - Exemplos de códigos BNCC por disciplina
+  - Dicas para evitar erros comuns
+
+#### 📚 Documentação Atualizada
+- ✅ **SISTEMA_IMPORTACAO_AVALIACOES_FREQUENCIAS.md**
+  - Seção sobre vinculação de habilidades
+  - Documentação do endpoint de template por turma
+  - Instruções detalhadas sobre uso de habilidades
+  - Exemplos de formatação aceita
+
+#### 🛠️ Melhorias Técnicas
+- ✅ Busca de habilidades por código com validação de disciplina
+- ✅ Parsing robusto de strings separadas por vírgula ou ponto e vírgula
+- ✅ Tratamento de espaços em branco nos códigos
+- ✅ Vinculação automática de habilidades ao criar/atualizar avaliações
+- ✅ Mensagens de erro específicas para habilidades não encontradas
+
+#### 🎯 Benefícios Pedagógicos
+- ⚡ Professor pode rastrear quais habilidades foram trabalhadas em cada avaliação
+- 📊 Análise automática do desenvolvimento de habilidades por aluno
+- 🎓 Facilita o alinhamento com a BNCC
+- 📈 Relatórios de habilidades trabalhadas por trimestre
+- ✅ Validação do currículo planejado vs executado
+
+---
+
+## Versão 2.7 - Semana 3 de Fevereiro de 2026
 
 ### ✨ SISTEMA DE IMPORTAÇÃO EM MASSA - AVALIAÇÕES E FREQUÊNCIAS
 

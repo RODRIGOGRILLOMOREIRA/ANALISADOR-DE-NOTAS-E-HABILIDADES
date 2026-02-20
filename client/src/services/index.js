@@ -145,6 +145,11 @@ export const avaliacaoService = {
     const response = await api.post('/avaliacoes/importar', { avaliacoes });
     return response.data;
   },
+
+  getTemplatePorTurma: async (turmaId, params = {}) => {
+    const response = await api.get(`/avaliacoes/template/${turmaId}`, { params });
+    return response.data;
+  },
 };
 
 export const habilidadeService = {

@@ -22,7 +22,24 @@ Funcionalidade completa de importação em massa de **Avaliações (Notas)** e *
 
 **Campos Suportados:**
 - **Obrigatórios:** `matricula_aluno` ou `aluno_nome`, `codigo_disciplina` ou `disciplina_nome`, `turma_nome`, `nota`
-- **Opcionais:** `professor_nome`, `ano`, `trimestre`, `tipo_avaliacao`, `descricao`, `peso`, `data_avaliacao`, `observacoes`
+- **Opcionais:** `professor_nome`, `ano`, `trimestre`, `tipo_avaliacao`, `descricao`, `peso`, `data_avaliacao`, **`habilidades_codigos`** 🆕, `observacoes`
+
+**🎯 Novidade - Vinculação de Habilidades BNCC:**
+- Campo `habilidades_codigos` permite vincular habilidades à avaliação
+- Aceita códigos separados por vírgula ou ponto e vírgula (Ex: `EF06MA01,EF06MA02`)
+- Sistema busca automaticamente as habilidades cadastradas
+- Habilidades são vinculadas à avaliação para análise pedagógica
+- Habilidades não encontradas são ignoradas sem gerar erro
+
+**📥 Template Personalizado por Turma:**
+**Endpoint:** `GET /api/avaliacoes/template/:turmaId?disciplinaId=X&trimestre=Y&ano=Z`
+
+**Funcionalidades:**
+- Gera template CSV/Excel com todos os alunos da turma selecionada
+- Inclui informações da disciplina e turma
+- Lista todas as habilidades disponíveis para a disciplina selecionada
+- Reduz erros de digitação de nomes e matrículas
+- Facilita o trabalho do professor com dados pré-preenchidos
 
 #### Frequências
 **Endpoint:** `POST /api/frequencias/importar`
@@ -45,10 +62,13 @@ Funcionalidade completa de importação em massa de **Avaliações (Notas)** e *
 - ✅ Botão "Importar" no cabeçalho da página
 - ✅ Diálogo de importação com abas (Upload e Instruções)
 - ✅ Suporte para CSV e Excel (.xlsx)
+- ✅ **Seletores de Turma e Disciplina** para template personalizado 🆕
+- ✅ **Exibição de habilidades disponíveis** da disciplina selecionada 🆕
 - ✅ Botões para download de templates (CSV e Excel)
-- ✅ Preview dos dados antes da importação
+- ✅ Preview dos dados antes da importação (inclui habilidades)
 - ✅ Feedback visual do processo de importação
 - ✅ Mensagens de sucesso e erro detalhadas
+- ✅ **Instruções completas** sobre como preencher habilidades 🆕
 
 #### Página de Frequências
 - ✅ Botão "Importar" no cabeçalho da página
@@ -71,22 +91,37 @@ Criados na pasta `exemplos/`:
 ### Importar Avaliações
 
 1. **Preparar o arquivo:**
-   - Baixe o template CSV ou Excel diretamente do sistema
-   - Ou use o arquivo `exemplos/avaliacoes_exemplo.csv` como referência
-   - Preencha os dados conforme as especificações
-
-2. **Importar:**
+   
+   **Opção A - Template Personalizado por Turma (RECOMENDADO):** 🆕
    - Acesse **Avaliações** no menu
    - Clique no botão **Importar**
    - Selecione a aba **Upload**
+   - **Selecione a Turma** no dropdown
+   - **Selecione a Disciplina** no dropdown
+   - O sistema exibirá as **habilidades disponíveis** para aquela disciplina
+   - Clique em **Baixar Template CSV** ou **Baixar Template Excel**
+   - O arquivo virá com todos os alunos da turma e campos pré-preenchidos
+   - Preencha apenas as notas e habilidades desejadas
+   
+   **Opção B - Template Genérico:**
+   - Use o arquivo `exemplos/avaliacoes_exemplo.csv` como referência
+   - Preencha todos os dados manualmente
+
+2. **Preencher Habilidades (opcional):** 🎯
+   - Na coluna `habilidades_codigos`, adicione os códigos das habilidades BNCC
+   - Separe por vírgula ou ponto e vírgula: `EF06MA01,EF06MA02`
+   - Os códigos devem corresponder às habilidades cadastradas
+   - Deixe vazio se não quiser vincular habilidades
+
+3. **Importar:**
    - Clique em **Selecionar Arquivo** e escolha seu CSV ou Excel
-   - Revise a lista de dados a serem importados
+   - Revise a lista de dados a serem importados (com habilidades se preenchidas)
    - Clique em **Importar**
 
-3. **Verificar resultados:**
+4. **Verificar resultados:**
    - O sistema mostrará quantas avaliações foram importadas com sucesso
    - Erros serão reportados com detalhes
-   - As avaliações aparecerão imediatamente na lista
+   - As avaliações com habilidades vinculadas aparecerão imediatamente na lista
 
 ### Importar Frequências
 
