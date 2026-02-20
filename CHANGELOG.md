@@ -1,6 +1,113 @@
 # 📋 Changelog - Sistema Analisador de Notas e Habilidades
 
-## Versão 2.8 - 20 de Fevereiro de 2026 🆕
+## Versão 2.9 - 21 de Fevereiro de 2026 🆕
+
+### ✨ MELHORIAS NO SISTEMA DE IMPORTAÇÃO DE FREQUÊNCIAS
+
+#### 🚀 Códigos de Status Rápidos
+- ✅ **Nova Coluna `status_codigo`**
+  - Campo opcional para agilizar preenchimento de frequências
+  - Aceita códigos simples: **P**, **F**, **FJ**, **A**
+  - **P** = Presente
+  - **F** = Falta
+  - **FJ** = Falta Justificada
+  - **A** = Atestado
+  - **Vazio** = Presente (padrão)
+  - Prioridade: `status_codigo` > `status` > padrão (presente)
+
+- ✅ **Validação e Conversão Automática**
+  - Backend processa códigos e converte para status completo
+  - Valida códigos antes de salvar
+  - Mensagens de erro claras para códigos inválidos
+  - Permite deixar vazio para marcar como presente (otimização de tempo)
+
+#### 📥 Template Personalizado por Turma
+- ✅ **Novo Endpoint: GET /api/frequencias/template/:turmaId**
+  - Gera template CSV/Excel específico para uma turma
+  - Inclui todos os alunos da turma com dados pré-preenchidos
+  - Aceita parâmetros: `disciplinaId`, `data`
+  - Matrícula e nome dos alunos já preenchidos
+  - Turma e disciplina pré-selecionadas
+  - Data pré-preenchida (ou data atual)
+  - Período automático baseado no turno da turma
+  - Reduz drasticamente erros de digitação
+
+- ✅ **Frontend Atualizado**
+  - Seletores de Turma e Disciplina no diálogo de importação de Frequências
+  - Interface similar à de Avaliações para consistência
+  - Template baixado contém nome do arquivo personalizado
+  - Mensagens explicativas sobre códigos de status
+  - Feedback visual melhorado
+
+- ✅ **Template Excel com Instruções**
+  - Segunda aba "Instruções" com explicação dos códigos
+  - Orientações sobre preenchimento
+  - Dicas de produtividade
+  - Lembretes sobre campos obrigatórios
+
+#### 💡 Otimização de Tempo para Professores
+- ✅ **Marcação Rápida de Presença**
+  - Deixar células vazias = todos presentes
+  - Digitar apenas **F** nos alunos ausentes
+  - Muito mais rápido que escrever "presente" para toda turma
+  - Ideal para turmas grandes
+
+- ✅ **Template Pré-preenchido**
+  - Reduce tempo de preparação do arquivo
+  - Elimina erros de digitação de nomes
+  - Professor foca apenas em marcar faltas
+  - Workflow otimizado
+
+#### 📦 Arquivos Atualizados
+- ✅ **server/src/controllers/frequenciaController.js**
+  - Adicionado método `gerarTemplatePorTurma`
+  - Atualizado método `importarFrequencias` com processamento de `status_codigo`
+  - Validação de códigos P, F, FJ, A
+  - Conversão automática para status completo
+
+- ✅ **server/src/routes/frequencias.js**
+  - Nova rota GET `/api/frequencias/template/:turmaId`
+  - Rota protegida por autenticação
+
+- ✅ **client/src/services/index.js**
+  - Adicionado método `frequenciaService.getTemplatePorTurma`
+
+- ✅ **client/src/pages/Frequencias.js**
+  - Estados para turmaSelecionadaTemplate e disciplinaSelecionadaTemplate
+  - Seletores visuais no diálogo de importação
+  - Função `downloadTemplate` atualizada para usar novo endpoint
+  - Suporte a template personalizado e genérico
+  - Instruções sobre códigos de status
+
+- ✅ **exemplos/frequencias_exemplo.csv**
+  - Atualizado com coluna `status_codigo`
+  - Exemplos dos códigos P, F, FJ, A
+  - Demonstra uso de células vazias para presente
+  - Removida coluna `professor_nome` (opcional, reduz complexidade)
+
+- ✅ **exemplos/README.md**
+  - Seção atualizada com explicação de códigos de status
+  - Dicas de uso para rapidez
+  - Instruções sobre template personalizado
+  - Exemplos práticos
+
+- ✅ **docs/SISTEMA_IMPORTACAO_AVALIACOES_FREQUENCIAS.md**
+  - Documentação completa dos códigos de status
+  - Seção sobre template personalizado de Frequências
+  - Instruções detalhadas
+  - Exemplos de uso
+  - Dicas de produtividade
+
+#### 🎯 Benefícios da Atualização
+- ⏱️ **Velocidade:** Marcar frequência de uma turma inteira em segundos
+- ✅ **Precisão:** Dados pré-preenchidos eliminam erros de digitação
+- 🎨 **Usabilidade:** Interface consistente entre Avaliações e Frequências
+- 📚 **Documentação:** Instruções claras e exemplos práticos
+- 🔄 **Workflow:** Processo otimizado para professores
+
+---
+
+## Versão 2.8 - 20 de Fevereiro de 2026
 
 ### ✨ MELHORIAS NO SISTEMA DE IMPORTAÇÃO DE AVALIAÇÕES
 

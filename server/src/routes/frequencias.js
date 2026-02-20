@@ -10,7 +10,8 @@ const {
   justificarFalta,
   updateFrequencia,
   deleteFrequencia,
-  importarFrequencias
+  importarFrequencias,
+  gerarTemplatePorTurma
 } = require('../controllers/frequenciaController');
 const { auth } = require('../middleware/auth');
 
@@ -24,6 +25,9 @@ router.route('/')
 
 // Importar frequências
 router.post('/importar', importarFrequencias);
+
+// Gerar template de frequências por turma
+router.get('/template/:turmaId', gerarTemplatePorTurma);
 
 // Dashboard de frequência
 router.get('/dashboard', getDashboardFrequencia);

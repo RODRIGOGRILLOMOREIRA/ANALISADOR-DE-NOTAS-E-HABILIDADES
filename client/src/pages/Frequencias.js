@@ -89,6 +89,10 @@ const Frequencias = () => {
   const [openImportDialog, setOpenImportDialog] = useState(false);
   const [importData, setImportData] = useState([]);
   const [tabValue, setTabValue] = useState(0);
+  
+  // Template personalizado por turma
+  const [turmaSelecionadaTemplate, setTurmaSelecionadaTemplate] = useState('');
+  const [disciplinaSelecionadaTemplate, setDisciplinaSelecionadaTemplate] = useState('');
 
   // Estatísticas
   const [stats, setStats] = useState({
@@ -333,62 +337,135 @@ const Frequencias = () => {
     }
   };
 
-  const downloadTemplate = (format = 'csv') => {
-    const dataExemplo = new Date().toISOString().split('T')[0];
-    
-    if (format === 'excel') {
-      const ws = XLSX.utils.json_to_sheet([
-        {
-          matricula_aluno: '2026001',
-          aluno_nome: 'João Silva',
-          codigo_disciplina: 'MAT',
-          disciplina_nome: 'Matemática',
-          turma_nome: '1º Ano A',
-          professor_nome: 'Prof. Carlos',
-          data: dataExemplo,
-          status: 'presente',
-          periodo: 'matutino',
-          observacao: ''
-        },
-        {
-          matricula_aluno: '2026002',
-          aluno_nome: 'Ana Santos',
-          codigo_disciplina: 'POR',
-          disciplina_nome: 'Português',
-          turma_nome: '2º Ano B',
-          professor_nome: 'Prof. Maria',
-          data: dataExemplo,
-          status: 'falta',
-          periodo: 'vespertino',
-          observacao: 'Aluna avisou'
-        },
-        {
-          matricula_aluno: '2026003',
-          aluno_nome: 'Pedro Costa',
-          codigo_disciplina: 'MAT',
-          disciplina_nome: 'Matemática',
-          turma_nome: '3º Ano C',
-          professor_nome: 'Prof. Carlos',
-          data: dataExemplo,
-          status: 'falta-justificada',
-          periodo: 'matutino',
-          observacao: 'Atestado médico'
+  const downloadTemplate = async (format = 'csv') => {
+    try {
+      // Se há turma selecionada, baixar template personalizado
+      if (turmaSelecionadaTemplate) {
+        const params = {};
+        if (disciplinaSelecionadaTemplate) {
+          params.disciplinaId = disciplinaSelecionadaTemplate;
         }
-      ]);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Frequências');
-      XLSX.writeFile(wb, 'template_frequencias.xlsx');
-    } else {
-      const csv = 'matricula_aluno,aluno_nome,codigo_disciplina,disciplina_nome,turma_nome,professor_nome,data,status,periodo,observacao\n' +
-                  `2026001,João Silva,MAT,Matemática,1º Ano A,Prof. Carlos,${dataExemplo},presente,matutino,\n` +
-                  `2026002,Ana Santos,POR,Português,2º Ano B,Prof. Maria,${dataExemplo},falta,vespertino,Aluna avisou\n` +
-                  `2026003,Pedro Costa,MAT,Matemática,3º Ano C,Prof. Carlos,${dataExemplo},falta-justificada,matutino,Atestado médico`;
+        if (filtros.data) {
+          params.data = filtros.data;
+        }
+
+        const response = await frequenciaService.getTemplatePorTurma(turmaSelecionadaTemplate, params);
+        const { turma, disciplina, template, instrucoes } = response.data;
+
+        if (format === 'excel') {
+          const ws = XLSX.utils.json_to_sheet(template);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Frequências');
+          
+          // Adicionar instruções em outra aba
+          const wsInstrucoes = XLSX.utils.aoa_to_sheet([
+            ['INSTRUÇÕES PARA PREENCHIMENTO'],
+            [''],
+            ['Códigos de Status (use na coluna status_codigo):'],
+            ...instrucoes.map(i => [i]),
+            [''],
+            ['Importante:'],
+            ['- Não altere as colunas matricula_aluno, aluno_nome, turma_nome'],
+            ['- Não remova cabeçalhos'],
+            ['- Use a coluna status_codigo (P, F, FJ, A) para rapidez'],
+            ['- Ou use a coluna status (presente, falta, falta-justificada, atestado)'],
+            ['- Se ambas estiverem vazias, será considerado "presente"'],
+          ]);
+          XLSX.utils.book_append_sheet(wb, wsInstrucoes, 'Instruções');
+          
+          const fileName = disciplina 
+            ? `frequencia_${turma.nome}_${disciplina.nome}.xlsx`
+            : `frequencia_${turma.nome}_todas_disciplinas.xlsx`;
+          XLSX.writeFile(wb, fileName);
+        } else {
+          const csv = Papa.unparse(template);
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          const fileName = disciplina 
+            ? `frequencia_${turma.nome}_${disciplina.nome}.csv`
+            : `frequencia_${turma.nome}_todas_disciplinas.csv`;
+          link.download = fileName;
+          link.click();
+        }
+
+        toast.success('Template personalizado baixado com sucesso!');
+        return;
+      }
+
+      // Template genérico (comportamento anterior)
+      const dataExemplo = new Date().toISOString().split('T')[0];
       
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'template_frequencias.csv';
-      link.click();
+      if (format === 'excel') {
+        const ws = XLSX.utils.json_to_sheet([
+          {
+            matricula_aluno: '2026001',
+            aluno_nome: 'João Silva',
+            codigo_disciplina: 'MAT',
+            disciplina_nome: 'Matemática',
+            turma_nome: '1º Ano A',
+            data: dataExemplo,
+            status: '',
+            status_codigo: 'P',
+            periodo: 'matutino',
+            observacao: ''
+          },
+          {
+            matricula_aluno: '2026002',
+            aluno_nome: 'Ana Santos',
+            codigo_disciplina: 'POR',
+            disciplina_nome: 'Português',
+            turma_nome: '2º Ano B',
+            data: dataExemplo,
+            status: '',
+            status_codigo: 'F',
+            periodo: 'vespertino',
+            observacao: 'Aluna avisou'
+          },
+          {
+            matricula_aluno: '2026003',
+            aluno_nome: 'Pedro Costa',
+            codigo_disciplina: 'MAT',
+            disciplina_nome: 'Matemática',
+            turma_nome: '3º Ano C',
+            data: dataExemplo,
+            status: '',
+            status_codigo: 'FJ',
+            periodo: 'matutino',
+            observacao: 'Atestado médico'
+          }
+        ]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Frequências');
+        
+        // Adicionar instruções
+        const wsInstrucoes = XLSX.utils.aoa_to_sheet([
+          ['CÓDIGOS DE STATUS'],
+          ['P = Presente'],
+          ['F = Falta'],
+          ['FJ = Falta Justificada'],
+          ['A = Atestado'],
+          [''],
+          ['Use a coluna status_codigo para mais rapidez!'],
+        ]);
+        XLSX.utils.book_append_sheet(wb, wsInstrucoes, 'Códigos');
+        
+        XLSX.writeFile(wb, 'template_frequencias.xlsx');
+      } else {
+        const csv = 'matricula_aluno,aluno_nome,codigo_disciplina,disciplina_nome,turma_nome,data,status,status_codigo,periodo,observacao\n' +
+                    `2026001,João Silva,MAT,Matemática,1º Ano A,${dataExemplo},,P,matutino,\n` +
+                    `2026002,Ana Santos,POR,Português,2º Ano B,${dataExemplo},,F,vespertino,Aluna avisou\n` +
+                    `2026003,Pedro Costa,MAT,Matemática,3º Ano C,${dataExemplo},,FJ,matutino,Atestado médico`;
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'template_frequencias.csv';
+        link.click();
+      }
+    } catch (error) {
+      console.error('Erro ao baixar template:', error);
+      toast.error('Erro ao baixar template: ' + error.message);
     }
   };
 
@@ -683,8 +760,63 @@ const Frequencias = () => {
             <Box>
               <Alert severity="info" sx={{ mb: 3 }}>
                 Faça upload de um arquivo CSV ou Excel (.xlsx) com as frequências.
-                Campos obrigatórios: matricula_aluno ou aluno_nome, codigo_disciplina ou disciplina_nome, turma_nome, data.
+                Use códigos rápidos: <strong>P</strong> (Presente), <strong>F</strong> (Falta), <strong>FJ</strong> (Falta Justificada), <strong>A</strong> (Atestado).
               </Alert>
+
+              {/* Seletores para template personalizado */}
+              <Box sx={{ mb: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="subtitle2" gutterBottom color="primary">
+                  Template Personalizado por Turma
+                </Typography>
+                <Typography variant="caption" display="block" sx={{ mb: 2, color: 'text.secondary' }}>
+                  Baixe um template com todos os alunos da turma já preenchidos
+                </Typography>
+                
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      select
+                      fullWidth
+                      label="Selecione a Turma"
+                      value={turmaSelecionadaTemplate}
+                      onChange={(e) => {
+                        setTurmaSelecionadaTemplate(e.target.value);
+                        setDisciplinaSelecionadaTemplate('');
+                      }}
+                      size="small"
+                    >
+                      <MenuItem value="">
+                        <em>Template genérico</em>
+                      </MenuItem>
+                      {turmas.map((turma) => (
+                        <MenuItem key={turma._id} value={turma._id}>
+                          {turma.nome}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      select
+                      fullWidth
+                      label="Disciplina (opcional)"
+                      value={disciplinaSelecionadaTemplate}
+                      onChange={(e) => setDisciplinaSelecionadaTemplate(e.target.value)}
+                      disabled={!turmaSelecionadaTemplate}
+                      size="small"
+                    >
+                      <MenuItem value="">
+                        <em>Todas as disciplinas</em>
+                      </MenuItem>
+                      {disciplinas.map((disciplina) => (
+                        <MenuItem key={disciplina._id} value={disciplina._id}>
+                          {disciplina.nome}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                </Grid>
+              </Box>
 
               <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
                 <Button

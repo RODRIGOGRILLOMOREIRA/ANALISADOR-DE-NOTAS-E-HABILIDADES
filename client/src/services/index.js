@@ -334,4 +334,9 @@ export const frequenciaService = {
     const response = await api.post('/frequencias/importar', { frequencias });
     return response.data;
   },
+
+  getTemplatePorTurma: async (turmaId, params = {}) => {
+    const response = await api.get(`/frequencias/template/${turmaId}`, { params });
+    return response.data;
+  },
 };

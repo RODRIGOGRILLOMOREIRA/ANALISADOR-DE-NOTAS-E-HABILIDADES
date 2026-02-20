@@ -419,6 +419,86 @@ exports.deleteFrequencia = async (req, res) => {
   }
 };
 
+// @desc    Gerar template de frequências por turma
+// @route   GET /api/frequencias/template/:turmaId
+exports.gerarTemplatePorTurma = async (req, res) => {
+  try {
+    const { turmaId } = req.params;
+    const { disciplinaId, data } = req.query;
+    
+    const Turma = require('../models/Turma');
+    const Disciplina = require('../models/Disciplina');
+    
+    // Buscar turma
+    const turma = await Turma.findById(turmaId).populate('disciplinas.disciplina');
+    if (!turma) {
+      return res.status(404).json({ message: 'Turma não encontrada' });
+    }
+    
+    // Buscar alunos da turma
+    const alunos = await Aluno.find({ turma: turmaId, ativo: true }).sort({ nome: 1 });
+    
+    if (alunos.length === 0) {
+      return res.status(400).json({ message: 'Nenhum aluno encontrado nesta turma' });
+    }
+    
+    // Buscar disciplina se especificada
+    let disciplina = null;
+    if (disciplinaId) {
+      disciplina = await Disciplina.findById(disciplinaId);
+    }
+    
+    // Data padrão: hoje
+    const dataTemplate = data || new Date().toISOString().split('T')[0];
+    
+    // Gerar template com dados dos alunos
+    const template = alunos.map(aluno => ({
+      matricula_aluno: aluno.matricula,
+      aluno_nome: aluno.nome,
+      turma_nome: turma.nome,
+      codigo_disciplina: disciplina?.codigo || '',
+      disciplina_nome: disciplina?.nome || '',
+      data: dataTemplate,
+      status: '', // Vazio para fácil preenchimento
+      status_codigo: '', // P, F, FJ, A (facilitador)
+      periodo: turma.turno || 'matutino',
+      observacao: ''
+    }));
+    
+    res.json({
+      turma: {
+        id: turma._id,
+        nome: turma.nome,
+        turno: turma.turno,
+        totalAlunos: alunos.length
+      },
+      disciplina: disciplina ? {
+        id: disciplina._id,
+        nome: disciplina.nome,
+        codigo: disciplina.codigo
+      } : null,
+      template,
+      instrucoes: {
+        status: 'Preencha a coluna "status" com: presente, falta, falta-justificada ou atestado',
+        status_codigo: 'OU use a coluna "status_codigo" com códigos rápidos: P (presente), F (falta), FJ (falta-justificada), A (atestado)',
+        periodo: 'Valores: matutino, vespertino, noturno, integral',
+        data: 'Formato: AAAA-MM-DD',
+        dica: 'Deixe "status" e "status_codigo" vazios para marcar como PRESENTE automaticamente'
+      },
+      codigos_status: {
+        'P': 'presente',
+        'F': 'falta',
+        'FJ': 'falta-justificada',
+        'A': 'atestado',
+        '': 'presente (padrão)'
+      }
+    });
+    
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao gerar template', error: error.message });
+  }
+};
+
 // @desc    Importar frequências em lote (CSV/Excel)
 // @route   POST /api/frequencias/importar
 exports.importarFrequencias = async (req, res) => {
@@ -518,14 +598,43 @@ exports.importarFrequencias = async (req, res) => {
           continue;
         }
         
-        // Validar status
+        // Processar status (com suporte a códigos: P, F, FJ, A)
+        let status = 'presente'; // Padrão
+        
+        // Primeiro verificar se há código de status
+        if (item.status_codigo) {
+          const codigo = item.status_codigo.toString().toUpperCase().trim();
+          const mapaCodigos = {
+            'P': 'presente',
+            'F': 'falta',
+            'FJ': 'falta-justificada',
+            'A': 'atestado'
+          };
+          
+          if (mapaCodigos[codigo]) {
+            status = mapaCodigos[codigo];
+          } else {
+            resultados.erros++;
+            resultados.detalhes.push({
+              linha: item.linha || resultados.sucesso + resultados.erros + resultados.atualizados,
+              erro: `Código de status inválido: ${item.status_codigo}. Use: P, F, FJ ou A`,
+              dados: item
+            });
+            continue;
+          }
+        } 
+        // Se não houver código, verificar status por extenso
+        else if (item.status) {
+          status = item.status.toLowerCase().trim();
+        }
+        
+        // Validar status final
         const statusValidos = ['presente', 'falta', 'falta-justificada', 'atestado'];
-        const status = item.status?.toLowerCase() || 'presente';
         if (!statusValidos.includes(status)) {
           resultados.erros++;
           resultados.detalhes.push({
             linha: item.linha || resultados.sucesso + resultados.erros + resultados.atualizados,
-            erro: `Status inválido: ${item.status}. Use: ${statusValidos.join(', ')}`,
+            erro: `Status inválido: ${status}. Use: ${statusValidos.join(', ')} ou códigos P, F, FJ, A`,
             dados: item
           });
           continue;

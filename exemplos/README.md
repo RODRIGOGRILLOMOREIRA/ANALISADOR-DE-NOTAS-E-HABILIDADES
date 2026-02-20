@@ -65,10 +65,20 @@ Arquivo de exemplo com registros de frequência (presença/falta) dos alunos.
 - `data` - Data da aula no formato AAAA-MM-DD
 
 **Colunas Opcionais:**
-- `professor_nome` - Nome do professor
 - `status` - presente, falta, falta-justificada, atestado (padrão: presente)
+- **`status_codigo`** 🚀 - **P**, **F**, **FJ**, **A** (códigos rápidos para status - RECOMENDADO)
 - `periodo` - matutino, vespertino, noturno, integral
 - `observacao` - Observações sobre a frequência
+
+**🚀 Códigos de Status Rápidos:**
+Para facilitar o preenchimento, use a coluna `status_codigo` em vez de escrever por extenso:
+- **P** = Presente
+- **F** = Falta
+- **FJ** = Falta Justificada
+- **A** = Atestado
+- **Vazio** = Presente (padrão)
+
+💡 **Dica:** Deixe a célula vazia para marcar como presente! Isso torna a marcação de frequência muito mais rápida.
 
 ## 🚀 Como Usar
 
@@ -99,8 +109,10 @@ Arquivo de exemplo com registros de frequência (presença/falta) dos alunos.
 1. **IMPORTANTE:** Certifique-se de que alunos, turmas e disciplinas já foram cadastrados
 2. Acesse o sistema e vá em **Frequências**
 3. Clique no botão **Importar**
-4. Clique em **Selecionar Arquivo** e escolha `frequencias_exemplo.csv`
-5. Revise os dados e clique em **Importar**
+4. **RECOMENDADO:** Selecione uma turma e disciplina específicas para baixar um template personalizado com todos os alunos
+5. Clique em **Selecionar Arquivo** e escolha `frequencias_exemplo.csv` ou o template personalizado
+6. **Use os códigos rápidos** (P, F, FJ, A) ou deixe vazio para marcar como presente
+7. Revise os dados e clique em **Importar**
 
 ## ✏️ Criar Seus Próprios Arquivos
 
@@ -121,6 +133,8 @@ Você pode criar seus próprios arquivos CSV usando:
 - Para avaliações e frequências, você pode usar código OU nome da disciplina
 - Notas devem ser de 0 a 10
 - Status de frequência: presente, falta, falta-justificada, atestado
+- **🚀 Para frequências, use códigos P, F, FJ, A na coluna status_codigo para rapidez**
+- **Para marcar todos como presentes, deixe a coluna status_codigo vazia**
 
 ### Baixar Templates Vazios:
 O sistema oferece a opção de baixar templates vazios diretamente:
@@ -148,7 +162,8 @@ O sistema oferece a opção de baixar templates vazios diretamente:
 - **Tipo de avaliação inválido:** Use um dos tipos listados acima
 
 ### Frequências:
-- **Status inválido:** Use: presente, falta, falta-justificada ou atestado
+- **Status inválido:** Use: presente, falta, falta-justificada, atestado OU use códigos P, F, FJ, A
+- **Código de status inválido:** Use apenas P, F, FJ ou A na coluna status_codigo
 - **Data inválida:** Use o formato AAAA-MM-DD
 - **Registros duplicados:** Para a mesma data/aluno/disciplina, o registro existente será atualizado
 

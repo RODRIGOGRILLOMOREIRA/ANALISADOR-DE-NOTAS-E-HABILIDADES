@@ -1,16 +1,16 @@
-matricula_aluno,aluno_nome,codigo_disciplina,disciplina_nome,turma_nome,professor_nome,data,status,periodo,observacao
-2026001,João Silva,MAT,Matemática,1º Ano A,Prof. Carlos,2026-03-01,presente,matutino,
-2026002,Ana Santos,POR,Português,1º Ano A,Prof. Maria,2026-03-01,presente,matutino,
-2026003,Pedro Costa,MAT,Matemática,2º Ano B,Prof. Carlos,2026-03-01,presente,matutino,
-2026004,Maria Oliveira,CIE,Ciências,1º Ano A,Prof. Ana,2026-03-01,falta,matutino,Aluna avisou
-2026005,Carlos Souza,HIS,História,2º Ano B,Prof. João,2026-03-01,presente,matutino,
-2026001,João Silva,MAT,Matemática,1º Ano A,Prof. Carlos,2026-03-02,presente,matutino,
-2026002,Ana Santos,POR,Português,1º Ano A,Prof. Maria,2026-03-02,presente,matutino,
-2026003,Pedro Costa,MAT,Matemática,2º Ano B,Prof. Carlos,2026-03-02,falta-justificada,matutino,Atestado médico
-2026004,Maria Oliveira,CIE,Ciências,1º Ano A,Prof. Ana,2026-03-02,presente,matutino,
-2026005,Carlos Souza,HIS,História,2º Ano B,Prof. João,2026-03-02,presente,matutino,
-2026001,João Silva,MAT,Matemática,1º Ano A,Prof. Carlos,2026-03-03,falta,matutino,
-2026002,Ana Santos,POR,Português,1º Ano A,Prof. Maria,2026-03-03,presente,matutino,
-2026003,Pedro Costa,MAT,Matemática,2º Ano B,Prof. Carlos,2026-03-03,presente,matutino,
-2026004,Maria Oliveira,CIE,Ciências,1º Ano A,Prof. Ana,2026-03-03,presente,matutino,
-2026005,Carlos Souza,HIS,História,2º Ano B,Prof. João,2026-03-03,presente,matutino,
+matricula_aluno,aluno_nome,codigo_disciplina,disciplina_nome,turma_nome,data,status,status_codigo,periodo,observacao
+2026001,João Silva,MAT,Matemática,1º Ano A,2026-03-01,,,matutino,
+2026002,Ana Santos,POR,Português,1º Ano A,2026-03-01,,P,matutino,
+2026003,Pedro Costa,MAT,Matemática,2º Ano B,2026-03-01,,,matutino,
+2026004,Maria Oliveira,CIE,Ciências,1º Ano A,2026-03-01,,F,matutino,Aluna avisou
+2026005,Carlos Souza,HIS,História,2º Ano B,2026-03-01,,P,matutino,
+2026001,João Silva,MAT,Matemática,1º Ano A,2026-03-02,,,matutino,
+2026002,Ana Santos,POR,Português,1º Ano A,2026-03-02,,P,matutino,
+2026003,Pedro Costa,MAT,Matemática,2º Ano B,2026-03-02,,FJ,matutino,Atestado médico
+2026004,Maria Oliveira,CIE,Ciências,1º Ano A,2026-03-02,,,matutino,
+2026005,Carlos Souza,HIS,História,2º Ano B,2026-03-02,presente,,matutino,
+2026001,João Silva,MAT,Matemática,1º Ano A,2026-03-03,,F,matutino,
+2026002,Ana Santos,POR,Português,1º Ano A,2026-03-03,,,matutino,
+2026003,Pedro Costa,MAT,Matemática,2º Ano B,2026-03-03,,,matutino,
+2026004,Maria Oliveira,CIE,Ciências,1º Ano A,2026-03-03,,A,matutino,Atestado médico
+2026005,Carlos Souza,HIS,História,2º Ano B,2026-03-03,,P,matutino,
