@@ -429,6 +429,11 @@ exports.gerarTemplatePorTurma = async (req, res) => {
     const Turma = require('../models/Turma');
     const Disciplina = require('../models/Disciplina');
     
+    // Validar ID da turma
+    if (!turmaId || turmaId === 'undefined' || turmaId === 'null') {
+      return res.status(400).json({ message: 'ID da turma inválido' });
+    }
+    
     // Buscar turma
     const turma = await Turma.findById(turmaId).populate('disciplinas.disciplina');
     if (!turma) {
@@ -439,7 +444,10 @@ exports.gerarTemplatePorTurma = async (req, res) => {
     const alunos = await Aluno.find({ turma: turmaId, ativo: true }).sort({ nome: 1 });
     
     if (alunos.length === 0) {
-      return res.status(400).json({ message: 'Nenhum aluno encontrado nesta turma' });
+      return res.status(400).json({ 
+        message: 'Nenhum aluno encontrado nesta turma',
+        detalhes: `A turma "${turma.nome}" não possui alunos cadastrados. Cadastre alunos primeiro.`
+      });
     }
     
     // Buscar disciplina se especificada
@@ -495,6 +503,7 @@ exports.gerarTemplatePorTurma = async (req, res) => {
     });
     
   } catch (error) {
+    console.error('Erro ao gerar template de frequências:', error);
     res.status(500).json({ message: 'Erro ao gerar template', error: error.message });
   }
 };

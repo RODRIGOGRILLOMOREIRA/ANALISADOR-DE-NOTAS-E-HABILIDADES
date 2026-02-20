@@ -1,6 +1,36 @@
 # 📋 Changelog - Sistema Analisador de Notas e Habilidades
 
-## Versão 2.9 - 21 de Fevereiro de 2026 🆕
+## Versão 2.9.1 - 21 de Fevereiro de 2026 🐛
+
+### 🐛 CORREÇÕES DE BUGS
+
+#### Template de Frequências por Turma
+- ✅ **Corrigido erro 400 ao baixar template**
+  - Problema: Frontend tentava acessar `response.data.data` em vez de apenas `response`
+  - Solução: Ajustado acesso ao objeto de resposta do serviço
+  
+- ✅ **Melhorado tratamento de erros**
+  - Validação de ID da turma antes de buscar no banco
+  - Mensagem de erro mais clara quando turma não possui alunos
+  - Frontend exibe mensagens de erro detalhadas do backend
+  - Logs de erro no console do servidor para debugging
+  
+- ✅ **Corrigido formato das instruções no Excel**
+  - Problema: Tentava mapear objeto `instrucoes` como array
+  - Solução: Criadas instruções formatadas corretamente na aba "Instruções"
+  - Adicionadas explicações detalhadas dos códigos de status
+  
+#### Melhorias na Experiência do Usuário
+- ✅ Mensagens de erro específicas quando:
+  - ID da turma é inválido
+  - Turma não é encontrada
+  - Turma não possui alunos cadastrados
+- ✅ Instruções mais claras no template Excel
+- ✅ Feedback visual melhorado para erros
+
+---
+
+## Versão 2.9 - 21 de Fevereiro de 2026
 
 ### ✨ MELHORIAS NO SISTEMA DE IMPORTAÇÃO DE FREQUÊNCIAS
 

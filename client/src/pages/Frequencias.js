@@ -350,7 +350,7 @@ const Frequencias = () => {
         }
 
         const response = await frequenciaService.getTemplatePorTurma(turmaSelecionadaTemplate, params);
-        const { turma, disciplina, template, instrucoes } = response.data;
+        const { turma, disciplina, template, instrucoes, codigos_status } = response;
 
         if (format === 'excel') {
           const ws = XLSX.utils.json_to_sheet(template);
@@ -359,12 +359,21 @@ const Frequencias = () => {
           
           // Adicionar instruções em outra aba
           const wsInstrucoes = XLSX.utils.aoa_to_sheet([
-            ['INSTRUÇÕES PARA PREENCHIMENTO'],
+            ['INSTRUÇÕES PARA PREENCHIMENTO DE FREQUÊNCIAS'],
             [''],
-            ['Códigos de Status (use na coluna status_codigo):'],
-            ...instrucoes.map(i => [i]),
+            ['CÓDIGOS DE STATUS RÁPIDOS (coluna status_codigo):'],
+            ['P = Presente'],
+            ['F = Falta'],
+            ['FJ = Falta Justificada'],
+            ['A = Atestado'],
+            ['VAZIO = Presente (padrão)'],
             [''],
-            ['Importante:'],
+            ['INSTRUÇÕES:'],
+            [instrucoes.status],
+            [instrucoes.status_codigo],
+            [instrucoes.dica],
+            [''],
+            ['IMPORTANTE:'],
             ['- Não altere as colunas matricula_aluno, aluno_nome, turma_nome'],
             ['- Não remova cabeçalhos'],
             ['- Use a coluna status_codigo (P, F, FJ, A) para rapidez'],
@@ -465,7 +474,11 @@ const Frequencias = () => {
       }
     } catch (error) {
       console.error('Erro ao baixar template:', error);
-      toast.error('Erro ao baixar template: ' + error.message);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.detalhes || 
+                          error.message || 
+                          'Erro desconhecido ao baixar template';
+      toast.error(errorMessage);
     }
   };
 
