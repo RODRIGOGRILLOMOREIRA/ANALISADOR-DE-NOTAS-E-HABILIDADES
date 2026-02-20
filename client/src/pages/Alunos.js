@@ -26,12 +26,16 @@ import {
   ListItem,
   ListItemText,
   Grid,
+  Fade,
+  Zoom,
 } from '@mui/material';
 import { Add, Edit, Delete, Upload, Download } from '@mui/icons-material';
 import { alunoService, turmaService } from '../services';
 import { toast } from 'react-toastify';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import PageHeader from '../components/PageHeader';
+import { Person as AlunosIcon } from '@mui/icons-material';
 
 const Alunos = () => {
   const [alunos, setAlunos] = useState([]);
@@ -316,35 +320,88 @@ const Alunos = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          Alunos
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => handleOpen()}
+    <Container maxWidth="xl">
+      <PageHeader 
+        title="Alunos"
+        subtitle="Gerencie os estudantes matriculados na instituição"
+        icon={AlunosIcon}
+      />
+      
+      <Zoom in={true} timeout={400}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            mb: 3,
+            alignItems: 'center' 
+          }}
         >
-          Novo Aluno
-        </Button>
-      </Box>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => handleOpen()}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3,
+              py: 1.5,
+              fontWeight: 600,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
+              }
+            }}
+          >
+            Novo Aluno
+          </Button>
+        </Box>
+      </Zoom>
 
-      <TableContainer component={Paper}>
+      <Fade in={true} timeout={600}>
+        <TableContainer 
+          component={Paper}
+          sx={{
+            borderRadius: 3,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+            }
+          }}
+        >
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell>Matrícula</TableCell>
-              <TableCell>Nome</TableCell>
-              <TableCell>Data Nascimento</TableCell>
-              <TableCell>Turma</TableCell>
-              <TableCell>Responsável</TableCell>
-              <TableCell align="center">Ações</TableCell>
+            <TableRow 
+              sx={{
+                bgcolor: (theme) => theme.palette.mode === 'dark' 
+                  ? 'rgba(0, 188, 212, 0.15)' 
+                  : 'rgba(102, 126, 234, 0.1)',
+              }}
+            >
+              <TableCell sx={{ fontWeight: 700 }}>Matrícula</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Nome</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Data Nascimento</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Turma</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Responsável</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {alunos.map((aluno) => (
-              <TableRow key={aluno._id}>
+              <TableRow 
+                key={aluno._id}
+                sx={{
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: (theme) => theme.palette.mode === 'dark' 
+                      ? 'rgba(0, 188, 212, 0.08)' 
+                      : 'rgba(102, 126, 234, 0.05)',
+                    transform: 'scale(1.01)',
+                  }
+                }}
+              >
                 <TableCell>
                   <Chip label={aluno.matricula} size="small" color="primary" variant="outlined" />
                 </TableCell>
@@ -375,6 +432,7 @@ const Alunos = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      </Fade>
 
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle>

@@ -29,7 +29,7 @@ const auth = async (req, res, next) => {
 
 // Middleware para verificar se é admin
 const isAdmin = (req, res, next) => {
-  if (req.user.tipo !== 'admin') {
+  if (req.user.tipo !== 'admin' && req.user.tipo !== 'coordenador') {
     return res.status(403).json({ message: 'Acesso negado. Apenas administradores.' });
   }
   next();
@@ -43,4 +43,20 @@ const isProfessorOrAdmin = (req, res, next) => {
   next();
 };
 
-module.exports = { auth, isAdmin, isProfessorOrAdmin };
+// Middleware para verificar se é professor
+const isProfessor = (req, res, next) => {
+  if (req.user.tipo !== 'professor' && req.user.tipo !== 'admin' && req.user.tipo !== 'coordenador') {
+    return res.status(403).json({ message: 'Acesso negado. Apenas professores.' });
+  }
+  next();
+};
+
+// Middleware para verificar se é aluno ou responsavel
+const isAlunoOrResponsavel = (req, res, next) => {
+  if (req.user.tipo !== 'aluno' && req.user.tipo !== 'responsavel' && req.user.tipo !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado.' });
+  }
+  next();
+};
+
+module.exports = { auth, isAdmin, isProfessorOrAdmin, isProfessor, isAlunoOrResponsavel };

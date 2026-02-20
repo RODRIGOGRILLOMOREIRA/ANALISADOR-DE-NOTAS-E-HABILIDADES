@@ -86,3 +86,33 @@ exports.getMe = async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar usuário', error: error.message });
   }
 };
+// @desc    Alterar senha
+// @route   PUT /api/auth/change-password
+// @access  Private
+exports.changePassword = async (req, res) => {
+  try {
+    const { senhaAtual, novaSenha } = req.body;
+
+    // Buscar usuário com senha
+    const user = await User.findById(req.user.id).select('+senha');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    // Verificar senha atual
+    const senhaCorreta = await user.compararSenha(senhaAtual);
+
+    if (!senhaCorreta) {
+      return res.status(401).json({ message: 'Senha atual incorreta' });
+    }
+
+    // Atualizar senha
+    user.senha = novaSenha;
+    await user.save();
+
+    res.json({ message: 'Senha alterada com sucesso' });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao alterar senha', error: error.message });
+  }
+};

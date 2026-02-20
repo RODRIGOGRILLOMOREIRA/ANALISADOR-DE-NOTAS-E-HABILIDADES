@@ -19,8 +19,8 @@ const darkColors = {
 const lightColors = {
   primary: '#008B8B',
   secondary: '#00CED1',
-  background: '#F5F5F5',
-  paper: '#FFFFFF',
+  background: '#EBEBEB',
+  paper: '#F8F8F8',
   text: '#1A1A1A',
 };
 
@@ -56,13 +56,40 @@ export const darkTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h1: { color: darkColors.primary },
-    h2: { color: darkColors.primary },
-    h3: { color: darkColors.primary },
-    h4: { color: darkColors.primary },
-    h5: { color: darkColors.primary },
-    h6: { color: darkColors.primary },
+    fontFamily: '"Poppins", "Inter", "Roboto", sans-serif',
+    h1: { 
+      color: darkColors.primary,
+      fontWeight: 700,
+      letterSpacing: '-0.5px',
+    },
+    h2: { 
+      color: darkColors.primary,
+      fontWeight: 700,
+      letterSpacing: '-0.3px',
+    },
+    h3: { 
+      color: darkColors.primary,
+      fontWeight: 600,
+      letterSpacing: '-0.2px',
+    },
+    h4: { 
+      color: darkColors.primary,
+      fontWeight: 600,
+    },
+    h5: { 
+      color: darkColors.primary,
+      fontWeight: 600,
+    },
+    h6: { 
+      color: darkColors.primary,
+      fontWeight: 600,
+    },
+    body1: {
+      fontFamily: '"Inter", "Roboto", sans-serif',
+    },
+    body2: {
+      fontFamily: '"Inter", "Roboto", sans-serif',
+    },
   },
   components: {
     MuiAppBar: {
@@ -167,13 +194,40 @@ export const lightTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h1: { color: lightColors.primary },
-    h2: { color: lightColors.primary },
-    h3: { color: lightColors.primary },
-    h4: { color: lightColors.primary },
-    h5: { color: lightColors.primary },
-    h6: { color: lightColors.primary },
+    fontFamily: '"Poppins", "Inter", "Roboto", sans-serif',
+    h1: { 
+      color: lightColors.primary,
+      fontWeight: 700,
+      letterSpacing: '-0.5px',
+    },
+    h2: { 
+      color: lightColors.primary,
+      fontWeight: 700,
+      letterSpacing: '-0.3px',
+    },
+    h3: { 
+      color: lightColors.primary,
+      fontWeight: 600,
+      letterSpacing: '-0.2px',
+    },
+    h4: { 
+      color: lightColors.primary,
+      fontWeight: 600,
+    },
+    h5: { 
+      color: lightColors.primary,
+      fontWeight: 600,
+    },
+    h6: { 
+      color: lightColors.primary,
+      fontWeight: 600,
+    },
+    body1: {
+      fontFamily: '"Inter", "Roboto", sans-serif',
+    },
+    body2: {
+      fontFamily: '"Inter", "Roboto", sans-serif',
+    },
   },
   components: {
     MuiAppBar: {
@@ -188,7 +242,7 @@ export const lightTheme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundColor: '#FAFAFA',
+          backgroundColor: '#F0F0F0',
           borderRight: `1px solid ${lightColors.primary}`,
         },
       },

@@ -24,6 +24,8 @@ import {
   Alert,
   CircularProgress,
   TextField,
+  Fade,
+  Zoom,
 } from '@mui/material';
 import {
   PictureAsPdf,
@@ -223,13 +225,27 @@ const Relatorios = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
-        📊 Relatórios e Análises
-      </Typography>
+      <Zoom in={true} timeout={400}>
+        <Typography variant="h4" gutterBottom fontWeight="600" sx={{ mb: 3 }}>
+          📊 Relatórios e Análises
+        </Typography>
+      </Zoom>
 
       {/* Filtros */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
+      <Fade in={true} timeout={600}>
+        <Paper 
+          sx={{ 
+            p: 3, 
+            mb: 3,
+            borderRadius: 3,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+            }
+          }}
+        >
+          <Typography variant="h6" gutterBottom fontWeight="600">
           Filtros
         </Typography>
         <Grid container spacing={2}>
@@ -314,15 +330,29 @@ const Relatorios = () => {
           </Grid>
         </Grid>
       </Paper>
+      </Fade>
 
       {/* Relatórios em PDF */}
-      <Typography variant="h5" gutterBottom sx={{ mt: 4, mb: 2 }}>
-        📄 Relatórios em PDF
-      </Typography>
+      <Zoom in={true} timeout={700}>
+        <Typography variant="h5" gutterBottom fontWeight="600" sx={{ mt: 4, mb: 2 }}>
+          📄 Relatórios em PDF
+        </Typography>
+      </Zoom>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} md={6}>
-          <Card>
+          <Fade in={true} timeout={800}>
+            <Card
+              sx={{
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+                }
+              }}
+            >
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <PictureAsPdf sx={{ fontSize: 40, color: '#00CED1', mr: 2 }} />
@@ -352,10 +382,22 @@ const Relatorios = () => {
               </Button>
             </CardActions>
           </Card>
+          </Fade>
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card>
+          <Fade in={true} timeout={900}>
+            <Card
+              sx={{
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+                }
+              }}
+            >
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <Assessment sx={{ fontSize: 40, color: '#00CED1', mr: 2 }} />
@@ -385,6 +427,7 @@ const Relatorios = () => {
               </Button>
             </CardActions>
           </Card>
+          </Fade>
         </Grid>
       </Grid>
 

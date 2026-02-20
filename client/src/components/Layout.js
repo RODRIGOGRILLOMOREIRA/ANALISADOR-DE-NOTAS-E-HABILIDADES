@@ -15,6 +15,7 @@ import {
   Typography,
   Divider,
   Tooltip,
+  Avatar,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -32,9 +33,11 @@ import {
   Brightness7,
   Summarize,
   EventNote,
+  Settings,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
+import { useSchool } from '../context/SchoolContext';
 
 const drawerWidth = 240;
 
@@ -43,6 +46,13 @@ const Layout = () => {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
+  const { schoolSettings, refreshKey } = useSchool();
+
+  // Debug: Log quando schoolSettings mudar
+  React.useEffect(() => {
+    console.log('Layout - SchoolSettings atualizadas:', schoolSettings);
+    console.log('RefreshKey:', refreshKey);
+  }, [schoolSettings, refreshKey]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -64,14 +74,46 @@ const Layout = () => {
     { text: 'Habilidades', icon: <Assignment />, path: '/habilidades' },
     { text: 'Frequências', icon: <EventNote />, path: '/frequencias' },
     { text: 'Relatórios', icon: <Summarize />, path: '/relatorios' },
+    { text: 'Configurações', icon: <Settings />, path: '/configuracoes' },
   ];
 
   const drawer = (
     <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Sistema Escolar
-        </Typography>
+      <Toolbar sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 3 }}>
+        {schoolSettings?.logo ? (
+          <Avatar
+            key={`drawer-logo-${refreshKey}`}
+            src={schoolSettings.logo}
+            alt="Logo da Escola"
+            imgProps={{ 
+              onError: (e) => {
+                console.error('Erro ao carregar logo no drawer');
+                e.target.style.display = 'none';
+              },
+              onLoad: () => {
+                console.log('Logo carregada no drawer com sucesso');
+              }
+            }}
+            sx={{ 
+              width: 80, 
+              height: 80,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              transition: 'transform 0.3s ease',
+              '&:hover': {
+                transform: 'scale(1.05)',
+              }
+            }}
+          />
+        ) : (
+          <Avatar sx={{ 
+            width: 80, 
+            height: 80, 
+            bgcolor: 'primary.main',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          }}>
+            <School sx={{ fontSize: 48 }} />
+          </Avatar>
+        )}
       </Toolbar>
       <Divider />
       <List>
@@ -106,6 +148,9 @@ const Layout = () => {
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
+          background: (theme) => theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, #0A0E14 0%, #1a2332 100%)'
+            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         }}
       >
         <Toolbar>
@@ -118,9 +163,34 @@ const Layout = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Sistema de Gerenciamento Escolar
-          </Typography>
+          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {schoolSettings?.logo && (
+              <Avatar
+                key={`appbar-logo-${refreshKey}`}
+                src={schoolSettings.logo}
+                alt="Logo da Escola"
+                imgProps={{ 
+                  onError: (e) => {
+                    console.error('Erro ao carregar logo no appbar');
+                    e.target.style.display = 'none';
+                  }
+                }}
+                sx={{ width: 40, height: 40, mr: 2 }}
+              />
+            )}
+            <Typography 
+              variant="h5" 
+              component="div" 
+              sx={{ 
+                fontFamily: '"Poppins", "Roboto", sans-serif',
+                fontWeight: 700,
+                letterSpacing: '0.5px',
+                textAlign: 'center',
+              }}
+            >
+              {schoolSettings?.nomeEscola || 'Sistema de Gerenciamento Escolar'}
+            </Typography>
+          </Box>
           <Typography variant="body1" sx={{ mr: 2 }}>
             {user?.nome} ({user?.tipo})
           </Typography>

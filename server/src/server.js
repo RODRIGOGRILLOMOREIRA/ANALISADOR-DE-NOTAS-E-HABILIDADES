@@ -18,6 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rotas
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/settings', require('./routes/settings'));
 app.use('/api/professores', require('./routes/professores'));
 app.use('/api/disciplinas', require('./routes/disciplinas'));
 app.use('/api/turmas', require('./routes/turmas'));

@@ -392,7 +392,7 @@ const Habilidades = () => {
   };
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
       <Box sx={{ mb: 3 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h4" component="h1">
@@ -478,7 +478,7 @@ const Habilidades = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          <Grid item xs={12} sm={6} md={1.5}>
             <TextField
               fullWidth
               size="small"
@@ -489,7 +489,7 @@ const Habilidades = () => {
               onChange={handleFilterChange}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          <Grid item xs={12} sm={6} md={1.5}>
             <FormControl fullWidth size="small">
               <InputLabel>Trimestre</InputLabel>
               <Select
@@ -505,8 +505,8 @@ const Habilidades = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={12} md={1}>
-            <Box display="flex" gap={1}>
+          <Grid item xs={12} sm={12} md={2}>
+            <Box display="flex" gap={1} height="100%">
               <Button
                 fullWidth
                 variant="contained"
@@ -516,6 +516,7 @@ const Habilidades = () => {
                 Filtrar
               </Button>
               <Button
+                fullWidth
                 variant="outlined"
                 onClick={handleClearFilters}
                 size="small"
@@ -705,7 +706,7 @@ const Habilidades = () => {
 
       {/* Tabela de Habilidades */}
       {viewMode === 'geral' && (
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ width: '100%', overflowX: 'auto' }}>
         <Table>
           <TableHead>
             <TableRow>

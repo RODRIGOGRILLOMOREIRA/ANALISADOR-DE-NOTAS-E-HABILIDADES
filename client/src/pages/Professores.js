@@ -29,10 +29,14 @@ import {
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
+  Fade,
+  Zoom,
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
 import { professorService, turmaService, disciplinaService } from '../services';
 import { toast } from 'react-toastify';
+import PageHeader from '../components/PageHeader';
+import { School as ProfessoresIcon } from '@mui/icons-material';
 
 const Professores = () => {
   const [professores, setProfessores] = useState([]);
@@ -168,34 +172,87 @@ const Professores = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          Professores
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => handleOpen()}
+    <Container maxWidth="xl">
+      <PageHeader 
+        title="Professores"
+        subtitle="Gerencie o corpo docente da instituição"
+        icon={ProfessoresIcon}
+      />
+      
+      <Zoom in={true} timeout={400}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            mb: 3,
+            alignItems: 'center' 
+          }}
         >
-          Novo Professor
-        </Button>
-      </Box>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => handleOpen()}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3,
+              py: 1.5,
+              fontWeight: 600,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
+              }
+            }}
+          >
+            Novo Professor
+          </Button>
+        </Box>
+      </Zoom>
 
-      <TableContainer component={Paper}>
+      <Fade in={true} timeout={600}>
+        <TableContainer 
+          component={Paper}
+          sx={{
+            borderRadius: 3,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+            }
+          }}
+        >
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell>Nome</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Telefone</TableCell>
-              <TableCell>Turmas/Disciplinas</TableCell>
-              <TableCell align="center">Ações</TableCell>
+            <TableRow 
+              sx={{
+                bgcolor: (theme) => theme.palette.mode === 'dark' 
+                  ? 'rgba(0, 188, 212, 0.15)' 
+                  : 'rgba(102, 126, 234, 0.1)',
+              }}
+            >
+              <TableCell sx={{ fontWeight: 700 }}>Nome</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Telefone</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Turmas/Disciplinas</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {professores.map((professor) => (
-              <TableRow key={professor._id}>
+              <TableRow 
+                key={professor._id}
+                sx={{
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: (theme) => theme.palette.mode === 'dark' 
+                      ? 'rgba(0, 188, 212, 0.08)' 
+                      : 'rgba(102, 126, 234, 0.05)',
+                    transform: 'scale(1.01)',
+                  }
+                }}
+              >
                 <TableCell>{professor.nome}</TableCell>
                 <TableCell>{professor.email}</TableCell>
                 <TableCell>{professor.telefone}</TableCell>
@@ -236,6 +293,7 @@ const Professores = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      </Fade>
 
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle>

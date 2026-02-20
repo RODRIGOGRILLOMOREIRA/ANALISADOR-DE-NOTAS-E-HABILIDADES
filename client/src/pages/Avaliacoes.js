@@ -26,6 +26,8 @@ import {
   Tooltip,
   Divider,
   LinearProgress,
+  Fade,
+  Zoom,
 } from '@mui/material';
 import {
   Add,
@@ -407,10 +409,18 @@ const Avaliacoes = () => {
 
   return (
     <Container maxWidth="xl">
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          📊 Lançamento de Avaliações
-        </Typography>
+      <Zoom in={true} timeout={400}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            mb: 3 
+          }}
+        >
+          <Typography variant="h4" component="h1" fontWeight="600">
+            📊 Lançamento de Avaliações
+          </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title={autoRefresh ? 'Atualização automática ativa' : 'Atualização automática desativada'}>
             <Button
@@ -418,6 +428,15 @@ const Avaliacoes = () => {
               color={autoRefresh ? 'success' : 'default'}
               onClick={() => setAutoRefresh(!autoRefresh)}
               startIcon={<Refresh />}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                }
+              }}
             >
               Auto {autoRefresh ? 'ON' : 'OFF'}
             </Button>
@@ -427,15 +446,37 @@ const Avaliacoes = () => {
             startIcon={<Refresh />}
             onClick={loadAvaliacoes}
             disabled={!filtros.turma || !filtros.disciplina}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+              }
+            }}
           >
             Atualizar
           </Button>
         </Box>
       </Box>
+      </Zoom>
 
       {/* Filtros */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
+      <Fade in={true} timeout={600}>
+        <Paper 
+          sx={{ 
+            p: 3, 
+            mb: 3,
+            borderRadius: 3,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+            }
+          }}
+        >
+          <Typography variant="h6" gutterBottom fontWeight="600">
           Filtros
         </Typography>
         <Grid container spacing={2}>
@@ -505,21 +546,39 @@ const Avaliacoes = () => {
           </Alert>
         )}
       </Paper>
+      </Fade>
 
       {loading && <LinearProgress sx={{ mb: 2 }} />}
 
       {/* Lista de Alunos */}
       {filtros.turma && filtros.disciplina && alunos.length > 0 && (
-        <TableContainer component={Paper}>
+        <Fade in={true} timeout={800}>
+          <TableContainer 
+            component={Paper}
+            sx={{
+              borderRadius: 3,
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+              }
+            }}
+          >
           <Table>
             <TableHead>
-              <TableRow>
-                <TableCell>Matrícula</TableCell>
-                <TableCell>Nome do Aluno</TableCell>
-                <TableCell align="center">Avaliações</TableCell>
-                <TableCell align="center">Nota Trimestral</TableCell>
-                <TableCell align="center">Média Anual</TableCell>
-                <TableCell align="center">Ações</TableCell>
+              <TableRow 
+                sx={{
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(0, 188, 212, 0.15)' 
+                    : 'rgba(102, 126, 234, 0.1)',
+                }}
+              >
+                <TableCell sx={{ fontWeight: 700 }}>Matrícula</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Nome do Aluno</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 700 }}>Avaliações</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 700 }}>Nota Trimestral</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 700 }}>Média Anual</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 700 }}>Ações</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -528,7 +587,19 @@ const Avaliacoes = () => {
                 const mediaAnual = getMediaAnualAluno(aluno._id);
                 
                 return (
-                  <TableRow key={aluno._id} hover>
+                  <TableRow 
+                    key={aluno._id} 
+                    hover
+                    sx={{
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        bgcolor: (theme) => theme.palette.mode === 'dark' 
+                          ? 'rgba(0, 188, 212, 0.08)' 
+                          : 'rgba(102, 126, 234, 0.05)',
+                        transform: 'scale(1.005)',
+                      }
+                    }}
+                  >
                     <TableCell>
                       <Chip label={aluno.matricula} size="small" variant="outlined" />
                     </TableCell>
@@ -593,14 +664,17 @@ const Avaliacoes = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        </Fade>
       )}
 
       {filtros.turma && filtros.disciplina && alunos.length === 0 && !loading && (
-        <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography color="text.secondary">
-            Nenhum aluno encontrado nesta turma.
-          </Typography>
-        </Paper>
+        <Fade in={true} timeout={800}>
+          <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 3 }}>
+            <Typography color="text.secondary">
+              Nenhum aluno encontrado nesta turma.
+            </Typography>
+          </Paper>
+        </Fade>
       )}
 
       {(!filtros.turma || !filtros.disciplina) && !loading && (

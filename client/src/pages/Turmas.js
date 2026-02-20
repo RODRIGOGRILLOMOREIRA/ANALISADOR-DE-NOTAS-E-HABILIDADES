@@ -25,12 +25,16 @@ import {
   List,
   ListItem,
   ListItemText,
+  Fade,
+  Zoom,
 } from '@mui/material';
 import { Add, Edit, Delete, Upload, Download } from '@mui/icons-material';
 import { turmaService, professorService, disciplinaService } from '../services';
 import { toast } from 'react-toastify';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import PageHeader from '../components/PageHeader';
+import { People as TurmasIcon } from '@mui/icons-material';
 
 const Turmas = () => {
   const [turmas, setTurmas] = useState([]);
@@ -277,36 +281,89 @@ const Turmas = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          Turmas
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => handleOpen()}
+    <Container maxWidth="xl">
+      <PageHeader 
+        title="Turmas"
+        subtitle="Organize e gerencie as turmas da escola"
+        icon={TurmasIcon}
+      />
+      
+      <Zoom in={true} timeout={400}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            mb: 3,
+            alignItems: 'center' 
+          }}
         >
-          Nova Turma
-        </Button>
-      </Box>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => handleOpen()}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3,
+              py: 1.5,
+              fontWeight: 600,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
+              }
+            }}
+          >
+            Nova Turma
+          </Button>
+        </Box>
+      </Zoom>
 
-      <TableContainer component={Paper}>
+      <Fade in={true} timeout={600}>
+        <TableContainer 
+          component={Paper}
+          sx={{
+            borderRadius: 3,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+            }
+          }}
+        >
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell>Nome</TableCell>
-              <TableCell>Ano</TableCell>
-              <TableCell>Série</TableCell>
-              <TableCell>Turno</TableCell>
-              <TableCell align="center">Alunos</TableCell>
-              <TableCell align="center">Capacidade</TableCell>
-              <TableCell align="center">Ações</TableCell>
+            <TableRow 
+              sx={{
+                bgcolor: (theme) => theme.palette.mode === 'dark' 
+                  ? 'rgba(0, 188, 212, 0.15)' 
+                  : 'rgba(102, 126, 234, 0.1)',
+              }}
+            >
+              <TableCell sx={{ fontWeight: 700 }}>Nome</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Ano</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Série</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Turno</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>Alunos</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>Capacidade</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {turmas.map((turma) => (
-              <TableRow key={turma._id}>
+              <TableRow 
+                key={turma._id}
+                sx={{
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: (theme) => theme.palette.mode === 'dark' 
+                      ? 'rgba(0, 188, 212, 0.08)' 
+                      : 'rgba(102, 126, 234, 0.05)',
+                    transform: 'scale(1.01)',
+                  }
+                }}
+              >
                 <TableCell>{turma.nome}</TableCell>
                 <TableCell>{turma.ano}</TableCell>
                 <TableCell>{turma.serie}</TableCell>
@@ -344,6 +401,7 @@ const Turmas = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      </Fade>
 
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle>

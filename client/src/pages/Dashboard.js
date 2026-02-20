@@ -20,14 +20,29 @@ import {
   TableHead,
   TableRow,
   Alert,
+  Fade,
+  Zoom,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import {
+  AssessmentOutlined,
+  SchoolOutlined,
+  CheckCircleOutlined,
+  TrendingUpOutlined,
+  PeopleOutlined,
+  EventAvailableOutlined,
+  WarningAmberOutlined,
+  EventBusyOutlined,
+  Refresh as RefreshIcon,
+} from '@mui/icons-material';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
   Title,
-  Tooltip,
+  Tooltip as TooltipChart,
   Legend,
   ArcElement,
   PointElement,
@@ -36,13 +51,15 @@ import {
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import { dashboardService, turmaService, disciplinaService, alunoService, frequenciaService } from '../services';
 import { toast } from 'react-toastify';
+import PageHeader from '../components/PageHeader';
+import { Dashboard as DashboardIcon } from '@mui/icons-material';
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
   Title,
-  Tooltip,
+  TooltipChart,
   Legend,
   ArcElement,
   PointElement,
@@ -240,9 +257,11 @@ const Dashboard = () => {
 
   return (
     <Container maxWidth="xl">
-      <Typography variant="h4" component="h1" gutterBottom>
-        Dashboard Analítico
-      </Typography>
+      <PageHeader 
+        title="Dashboard Analítico"
+        subtitle="Visualize métricas e indicadores de desempenho acadêmico"
+        icon={DashboardIcon}
+      />
 
       {/* Filtros */}
       <Paper sx={{ p: 2, mb: 3 }}>
@@ -380,46 +399,112 @@ const Dashboard = () => {
       {estatisticas && (
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>
-                  Total de Avaliações
-                </Typography>
-                <Typography variant="h4">{estatisticas.totalAvaliacoes}</Typography>
-              </CardContent>
-            </Card>
+            <Zoom in={true} timeout={300}>
+              <Card 
+                sx={{ 
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: '0 12px 24px rgba(102, 126, 234, 0.4)',
+                  }
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Box>
+                      <Typography sx={{ opacity: 0.9, fontSize: '0.875rem' }} gutterBottom>
+                        Total de Avaliações
+                      </Typography>
+                      <Typography variant="h4" fontWeight="bold">{estatisticas.totalAvaliacoes}</Typography>
+                    </Box>
+                    <AssessmentOutlined sx={{ fontSize: 48, opacity: 0.3 }} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Zoom>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>
-                  Média Geral
-                </Typography>
-                <Typography variant="h4">{estatisticas.mediaGeral.toFixed(2)}</Typography>
-              </CardContent>
-            </Card>
+            <Zoom in={true} timeout={400}>
+              <Card 
+                sx={{ 
+                  background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                  color: 'white',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: '0 12px 24px rgba(79, 172, 254, 0.4)',
+                  }
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Box>
+                      <Typography sx={{ opacity: 0.9, fontSize: '0.875rem' }} gutterBottom>
+                        Média Geral
+                      </Typography>
+                      <Typography variant="h4" fontWeight="bold">{estatisticas.mediaGeral.toFixed(2)}</Typography>
+                    </Box>
+                    <TrendingUpOutlined sx={{ fontSize: 48, opacity: 0.3 }} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Zoom>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>
-                  Aprovados
-                </Typography>
-                <Typography variant="h4" color="success.main">
-                  {estatisticas.aprovados}
-                </Typography>
-              </CardContent>
-            </Card>
+            <Zoom in={true} timeout={500}>
+              <Card 
+                sx={{ 
+                  background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                  color: 'white',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: '0 12px 24px rgba(67, 233, 123, 0.4)',
+                  }
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Box>
+                      <Typography sx={{ opacity: 0.9, fontSize: '0.875rem' }} gutterBottom>
+                        Aprovados
+                      </Typography>
+                      <Typography variant="h4" fontWeight="bold">{estatisticas.aprovados}</Typography>
+                    </Box>
+                    <CheckCircleOutlined sx={{ fontSize: 48, opacity: 0.3 }} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Zoom>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>
-                  % Aprovação
-                </Typography>
-                <Typography variant="h4">{estatisticas.percentualAprovacao}%</Typography>
-              </CardContent>
-            </Card>
+            <Zoom in={true} timeout={600}>
+              <Card 
+                sx={{ 
+                  background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                  color: 'white',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: '0 12px 24px rgba(250, 112, 154, 0.4)',
+                  }
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Box>
+                      <Typography sx={{ opacity: 0.9, fontSize: '0.875rem' }} gutterBottom>
+                        % Aprovação
+                      </Typography>
+                      <Typography variant="h4" fontWeight="bold">{estatisticas.percentualAprovacao}%</Typography>
+                    </Box>
+                    <SchoolOutlined sx={{ fontSize: 48, opacity: 0.3 }} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Zoom>
           </Grid>
         </Grid>
       )}
@@ -427,44 +512,95 @@ const Dashboard = () => {
       {/* Gráficos */}
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Desempenho por Disciplina
-            </Typography>
-            <Box sx={{ height: 300 }}>
+          <Fade in={true} timeout={800}>
+            <Paper 
+              sx={{ 
+                p: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                  transform: 'translateY(-2px)',
+                }
+              }}
+            >
+              <Typography variant="h6" gutterBottom fontWeight="600">
+                Desempenho por Disciplina
+              </Typography>
+              <Box sx={{ height: 300 }}>
               <Bar data={chartDataDesempenho} options={{ maintainAspectRatio: false }} />
             </Box>
           </Paper>
+          </Fade>
         </Grid>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Aprovação x Reprovação
-            </Typography>
+          <Fade in={true} timeout={900}>
+            <Paper 
+              sx={{ 
+                p: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                  transform: 'translateY(-2px)',
+                }
+              }}
+            >
+              <Typography variant="h6" gutterBottom fontWeight="600">
+                Aprovação x Reprovação
+              </Typography>
             <Box sx={{ height: 300, display: 'flex', justifyContent: 'center' }}>
               {chartDataAprovacao && (
                 <Pie data={chartDataAprovacao} options={{ maintainAspectRatio: false }} />
               )}
             </Box>
           </Paper>
+          </Fade>
         </Grid>
         <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Evolução Trimestral
-            </Typography>
+          <Fade in={true} timeout={1000}>
+            <Paper 
+              sx={{ 
+                p: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                  transform: 'translateY(-2px)',
+                }
+              }}
+            >
+              <Typography variant="h6" gutterBottom fontWeight="600">
+                Evolução Trimestral
+              </Typography>
             <Box sx={{ height: 300 }}>
               <Line data={chartDataEvolucao} options={{ maintainAspectRatio: false }} />
             </Box>
           </Paper>
+          </Fade>
         </Grid>
 
         {/* Gráficos de Habilidades */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              📚 Evolução de Habilidades por Trimestre
-            </Typography>
+          <Fade in={true} timeout={1100}>
+            <Paper 
+              sx={{ 
+                p: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                  transform: 'translateY(-2px)',
+                }
+              }}
+            >
+              <Typography variant="h6" gutterBottom fontWeight="600">
+                📚 Evolução de Habilidades por Trimestre
+              </Typography>
             <Box sx={{ height: 300 }}>
               {chartDataEvolucaoHabilidades ? (
                 <Line 
@@ -491,13 +627,26 @@ const Dashboard = () => {
               )}
             </Box>
           </Paper>
+          </Fade>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              🎯 Distribuição de Níveis de Habilidades
-            </Typography>
+          <Fade in={true} timeout={1200}>
+            <Paper 
+              sx={{ 
+                p: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                  transform: 'translateY(-2px)',
+                }
+              }}
+            >
+              <Typography variant="h6" gutterBottom fontWeight="600">
+                🎯 Distribuição de Níveis de Habilidades
+              </Typography>
             <Box sx={{ height: 300, display: 'flex', justifyContent: 'center' }}>
               {chartDataDistribuicaoHabilidades && distribuicaoHabilidades?.total > 0 ? (
                 <Pie 
@@ -529,14 +678,27 @@ const Dashboard = () => {
               )}
             </Box>
           </Paper>
+          </Fade>
         </Grid>
 
         {distribuicaoHabilidades && distribuicaoHabilidades.total > 0 && (
           <Grid item xs={12}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                📊 Estatísticas de Habilidades
-              </Typography>
+            <Fade in={true} timeout={1300}>
+              <Paper 
+                sx={{ 
+                  p: 3,
+                  borderRadius: 3,
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                    transform: 'translateY(-2px)',
+                  }
+                }}
+              >
+                <Typography variant="h6" gutterBottom fontWeight="600">
+                  📊 Estatísticas de Habilidades
+                </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6} md={3}>
                   <Card sx={{ bgcolor: 'error.light' }}>
@@ -600,6 +762,7 @@ const Dashboard = () => {
                 </Grid>
               </Grid>
             </Paper>
+            </Fade>
           </Grid>
         )}
 
@@ -607,10 +770,22 @@ const Dashboard = () => {
         {dashboardFrequencia && (
           <>
             <Grid item xs={12}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  📅 Dashboard de Frequência em Tempo Real
-                </Typography>
+              <Fade in={true} timeout={1400}>
+                <Paper 
+                  sx={{ 
+                    p: 3,
+                    borderRadius: 3,
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                      transform: 'translateY(-2px)',
+                    }
+                  }}
+                >
+                  <Typography variant="h6" gutterBottom fontWeight="600">
+                    📅 Dashboard de Frequência em Tempo Real
+                  </Typography>
                 
                 {/* Cards de Estatísticas de Frequência */}
                 <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -736,6 +911,7 @@ const Dashboard = () => {
                   </Alert>
                 )}
               </Paper>
+              </Fade>
             </Grid>
           </>
         )}

@@ -17,10 +17,14 @@ import {
   TextField,
   Box,
   IconButton,
+  Fade,
+  Zoom,
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
 import { disciplinaService } from '../services';
 import { toast } from 'react-toastify';
+import PageHeader from '../components/PageHeader';
+import { Class as DisciplinasIcon } from '@mui/icons-material';
 
 const Disciplinas = () => {
   const [disciplinas, setDisciplinas] = useState([]);
@@ -97,33 +101,86 @@ const Disciplinas = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          Disciplinas
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => handleOpen()}
+    <Container maxWidth="xl">
+      <PageHeader 
+        title="Disciplinas"
+        subtitle="Gerencie as disciplinas do currículo escolar"
+        icon={DisciplinasIcon}
+      />
+      
+      <Zoom in={true} timeout={400}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            mb: 3,
+            alignItems: 'center' 
+          }}
         >
-          Nova Disciplina
-        </Button>
-      </Box>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => handleOpen()}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3,
+              py: 1.5,
+              fontWeight: 600,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
+              }
+            }}
+          >
+            Nova Disciplina
+          </Button>
+        </Box>
+      </Zoom>
 
-      <TableContainer component={Paper}>
+      <Fade in={true} timeout={600}>
+        <TableContainer 
+          component={Paper}
+          sx={{
+            borderRadius: 3,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+            }
+          }}
+        >
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell>Código</TableCell>
-              <TableCell>Nome</TableCell>
-              <TableCell>Carga Horária</TableCell>
-              <TableCell align="center">Ações</TableCell>
+            <TableRow 
+              sx={{
+                bgcolor: (theme) => theme.palette.mode === 'dark' 
+                  ? 'rgba(0, 188, 212, 0.15)' 
+                  : 'rgba(102, 126, 234, 0.1)',
+              }}
+            >
+              <TableCell sx={{ fontWeight: 700 }}>Código</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Nome</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Carga Horária</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {disciplinas.map((disciplina) => (
-              <TableRow key={disciplina._id}>
+              <TableRow 
+                key={disciplina._id}
+                sx={{
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: (theme) => theme.palette.mode === 'dark' 
+                      ? 'rgba(0, 188, 212, 0.08)' 
+                      : 'rgba(102, 126, 234, 0.05)',
+                    transform: 'scale(1.01)',
+                  }
+                }}
+              >
                 <TableCell>{disciplina.codigo}</TableCell>
                 <TableCell>{disciplina.nome}</TableCell>
                 <TableCell>{disciplina.cargaHoraria}h</TableCell>
@@ -146,6 +203,7 @@ const Disciplinas = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      </Fade>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>
