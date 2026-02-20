@@ -1,0 +1,11 @@
+matricula_aluno,aluno_nome,codigo_disciplina,disciplina_nome,turma_nome,professor_nome,ano,trimestre,tipo_avaliacao,descricao,nota,peso,data_avaliacao,observacoes
+2026001,João Silva,MAT,Matemática,1º Ano A,Prof. Carlos,2026,1,prova,Prova Bimestral,8.5,3,2026-03-15,Ótimo desempenho
+2026001,João Silva,MAT,Matemática,1º Ano A,Prof. Carlos,2026,1,trabalho,Trabalho em Grupo,9.0,2,2026-03-20,Excelente apresentação
+2026002,Ana Santos,POR,Português,1º Ano A,Prof. Maria,2026,1,prova,Prova Bimestral,7.5,3,2026-03-15,
+2026002,Ana Santos,POR,Português,1º Ano A,Prof. Maria,2026,1,participacao,Participação em aula,8.0,1,2026-03-25,Muito participativa
+2026003,Pedro Costa,MAT,Matemática,2º Ano B,Prof. Carlos,2026,1,prova,Prova Bimestral,6.5,3,2026-03-15,Precisa melhorar
+2026003,Pedro Costa,MAT,Matemática,2º Ano B,Prof. Carlos,2026,1,simulado,Simulado ENEM,7.0,2,2026-03-22,
+2026004,Maria Oliveira,CIE,Ciências,1º Ano A,Prof. Ana,2026,1,trabalho,Projeto de Pesquisa,9.5,3,2026-03-18,Trabalho excepcional
+2026004,Maria Oliveira,CIE,Ciências,1º Ano A,Prof. Ana,2026,1,seminario,Seminário sobre Ecologia,8.5,2,2026-03-28,Boa apresentação
+2026005,Carlos Souza,HIS,História,2º Ano B,Prof. João,2026,1,prova,Prova Mensal,7.0,3,2026-03-15,
+2026005,Carlos Souza,HIS,História,2º Ano B,Prof. João,2026,1,atividade,Atividade em classe,8.0,1,2026-03-10,

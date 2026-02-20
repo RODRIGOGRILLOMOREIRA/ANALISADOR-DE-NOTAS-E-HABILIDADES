@@ -28,6 +28,11 @@ import {
   LinearProgress,
   Fade,
   Zoom,
+  Tabs,
+  Tab,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material';
 import {
   Add,
@@ -38,9 +43,13 @@ import {
   Save,
   Cancel,
   School,
+  Upload,
+  Download,
 } from '@mui/icons-material';
 import { avaliacaoService, turmaService, disciplinaService, alunoService } from '../services';
 import { toast } from 'react-toastify';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 const TIPOS_AVALIACAO = [
   { value: 'prova', label: 'Prova', color: 'primary' },
@@ -88,6 +97,11 @@ const Avaliacoes = () => {
   // Auto-refresh
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  // Importação
+  const [openImportDialog, setOpenImportDialog] = useState(false);
+  const [importData, setImportData] = useState([]);
+  const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
     loadTurmas();
@@ -407,6 +421,141 @@ const Avaliacoes = () => {
     setNovasAvaliacoes(updated);
   };
 
+  // Funções de importação
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const fileName = file.name.toLowerCase();
+    const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+
+    if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+          
+          const validData = jsonData.filter(row => 
+            (row.matricula_aluno || row.aluno_nome) && 
+            (row.codigo_disciplina || row.disciplina_nome) &&
+            row.turma_nome && row.nota
+          );
+          setImportData(validData);
+          if (validData.length > 0) {
+            toast.success(`${validData.length} avaliações encontradas no arquivo Excel`);
+          } else {
+            toast.error('Nenhuma avaliação válida encontrada no arquivo');
+          }
+        } catch (error) {
+          toast.error('Erro ao ler arquivo Excel: ' + error.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const validData = results.data.filter(row => 
+            (row.matricula_aluno || row.aluno_nome) && 
+            (row.codigo_disciplina || row.disciplina_nome) &&
+            row.turma_nome && row.nota
+          );
+          setImportData(validData);
+          if (validData.length > 0) {
+            toast.success(`${validData.length} avaliações encontradas no arquivo CSV`);
+          } else {
+            toast.error('Nenhuma avaliação válida encontrada no arquivo');
+          }
+        },
+        error: (error) => {
+          toast.error('Erro ao ler arquivo CSV: ' + error.message);
+        }
+      });
+    }
+  };
+
+  const handleImport = async () => {
+    if (importData.length === 0) {
+      toast.error('Nenhuma avaliação para importar');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await avaliacaoService.importar(importData);
+      
+      toast.success(`${response.sucesso} avaliações importadas com sucesso!`);
+      if (response.erros > 0) {
+        toast.warning(`${response.erros} avaliações com erro. Verifique os dados.`);
+        console.log('Detalhes dos erros:', response.detalhes);
+      }
+      
+      setOpenImportDialog(false);
+      setImportData([]);
+      loadAvaliacoes();
+    } catch (error) {
+      toast.error('Erro ao importar avaliações: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadTemplate = (format = 'csv') => {
+    if (format === 'excel') {
+      const ws = XLSX.utils.json_to_sheet([
+        {
+          matricula_aluno: '2026001',
+          aluno_nome: 'João Silva',
+          codigo_disciplina: 'MAT',
+          disciplina_nome: 'Matemática',
+          turma_nome: '1º Ano A',
+          professor_nome: 'Prof. Carlos',
+          ano: 2026,
+          trimestre: 1,
+          tipo_avaliacao: 'prova',
+          descricao: 'Prova Bimestral',
+          nota: 8.5,
+          peso: 3,
+          data_avaliacao: '2026-03-15',
+          observacoes: ''
+        },
+        {
+          matricula_aluno: '2026002',
+          aluno_nome: 'Ana Santos',
+          codigo_disciplina: 'POR',
+          disciplina_nome: 'Português',
+          turma_nome: '2º Ano B',
+          professor_nome: 'Prof. Maria',
+          ano: 2026,
+          trimestre: 1,
+          tipo_avaliacao: 'trabalho',
+          descricao: 'Trabalho em Grupo',
+          nota: 9.0,
+          peso: 2,
+          data_avaliacao: '2026-03-20',
+          observacoes: 'Excelente apresentação'
+        }
+      ]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
+      XLSX.writeFile(wb, 'template_avaliacoes.xlsx');
+    } else {
+      const csv = 'matricula_aluno,aluno_nome,codigo_disciplina,disciplina_nome,turma_nome,professor_nome,ano,trimestre,tipo_avaliacao,descricao,nota,peso,data_avaliacao,observacoes\n' +
+                  '2026001,João Silva,MAT,Matemática,1º Ano A,Prof. Carlos,2026,1,prova,Prova Bimestral,8.5,3,2026-03-15,\n' +
+                  '2026002,Ana Santos,POR,Português,2º Ano B,Prof. Maria,2026,1,trabalho,Trabalho em Grupo,9.0,2,2026-03-20,Excelente apresentação';
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'template_avaliacoes.csv';
+      link.click();
+    }
+  };
+
   return (
     <Container maxWidth="xl">
       <Zoom in={true} timeout={400}>
@@ -422,6 +571,25 @@ const Avaliacoes = () => {
             📊 Lançamento de Avaliações
           </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title="Importar avaliações em lote">
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<Upload />}
+              onClick={() => setOpenImportDialog(true)}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                }
+              }}
+            >
+              Importar
+            </Button>
+          </Tooltip>
           <Tooltip title={autoRefresh ? 'Atualização automática ativa' : 'Atualização automática desativada'}>
             <Button
               variant={autoRefresh ? 'contained' : 'outlined'}
@@ -905,6 +1073,150 @@ const Avaliacoes = () => {
             startIcon={<Save />}
           >
             Salvar Avaliações
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diálogo de Importação */}
+      <Dialog 
+        open={openImportDialog} 
+        onClose={() => setOpenImportDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Upload color="primary" />
+            <Typography variant="h6">Importar Avaliações</Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} sx={{ mb: 3 }}>
+            <Tab label="Upload" />
+            <Tab label="Instruções" />
+          </Tabs>
+
+          {tabValue === 0 && (
+            <Box>
+              <Alert severity="info" sx={{ mb: 3 }}>
+                Faça upload de um arquivo CSV ou Excel (.xlsx) com as avaliações.
+                Campos obrigatórios: matricula_aluno ou aluno_nome, codigo_disciplina ou disciplina_nome, turma_nome, nota.
+              </Alert>
+
+              <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<Download />}
+                  onClick={() => downloadTemplate('csv')}
+                  fullWidth
+                >
+                  Baixar Template CSV
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<Download />}
+                  onClick={() => downloadTemplate('excel')}
+                  fullWidth
+                >
+                  Baixar Template Excel
+                </Button>
+              </Box>
+
+              <Button
+                variant="contained"
+                component="label"
+                fullWidth
+                startIcon={<Upload />}
+                sx={{ mb: 3 }}
+              >
+                Selecionar Arquivo
+                <input
+                  type="file"
+                  hidden
+                  accept=".csv,.xlsx,.xls"
+                  onChange={handleFileUpload}
+                />
+              </Button>
+
+              {importData.length > 0 && (
+                <Box>
+                  <Alert severity="success" sx={{ mb: 2 }}>
+                    {importData.length} avaliações prontas para importar
+                  </Alert>
+                  <Paper sx={{ maxHeight: 400, overflow: 'auto' }}>
+                    <List dense>
+                      {importData.slice(0, 10).map((item, index) => (
+                        <ListItem key={index}>
+                          <ListItemText
+                            primary={`${item.aluno_nome || item.matricula_aluno} - ${item.disciplina_nome || item.codigo_disciplina}`}
+                            secondary={`Nota: ${item.nota} | Turma: ${item.turma_nome} | ${item.tipo_avaliacao || 'prova'}`}
+                          />
+                        </ListItem>
+                      ))}
+                      {importData.length > 10 && (
+                        <ListItem>
+                          <ListItemText secondary={`... e mais ${importData.length - 10} avaliações`} />
+                        </ListItem>
+                      )}
+                    </List>
+                  </Paper>
+                </Box>
+              )}
+            </Box>
+          )}
+
+          {tabValue === 1 && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                📋 Formato do Arquivo
+              </Typography>
+              <Typography variant="body2" paragraph>
+                O arquivo deve conter as seguintes colunas:
+              </Typography>
+              <Paper sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
+                <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace' }}>
+                  <strong>Obrigatórios:</strong><br />
+                  • matricula_aluno ou aluno_nome<br />
+                  • codigo_disciplina ou disciplina_nome<br />
+                  • turma_nome<br />
+                  • nota (0 a 10)<br />
+                  <br />
+                  <strong>Opcionais:</strong><br />
+                  • professor_nome<br />
+                  • ano (padrão: ano atual)<br />
+                  • trimestre (1, 2 ou 3 - padrão: 1)<br />
+                  • tipo_avaliacao (prova, trabalho, participacao, etc.)<br />
+                  • descricao<br />
+                  • peso (padrão: 1)<br />
+                  • data_avaliacao (formato: AAAA-MM-DD)<br />
+                  • observacoes
+                </Typography>
+              </Paper>
+              <Alert severity="warning">
+                <Typography variant="body2">
+                  <strong>Importante:</strong> O sistema buscará alunos pela matrícula ou nome,
+                  disciplinas pelo código ou nome, e turmas pelo nome. Certifique-se de que
+                  os dados correspondem aos cadastrados no sistema.
+                </Typography>
+              </Alert>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setOpenImportDialog(false);
+            setImportData([]);
+            setTabValue(0);
+          }}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleImport}
+            disabled={importData.length === 0 || loading}
+            startIcon={<Upload />}
+          >
+            {loading ? 'Importando...' : 'Importar'}
           </Button>
         </DialogActions>
       </Dialog>

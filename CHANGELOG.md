@@ -1,6 +1,161 @@
 # 📋 Changelog - Sistema Analisador de Notas e Habilidades
 
-## Versão 2.6 - 18 de Fevereiro de 2026 🆕
+## Versão 2.7 - Semana 3 de Fevereiro de 2026 🆕
+
+### ✨ SISTEMA DE IMPORTAÇÃO EM MASSA - AVALIAÇÕES E FREQUÊNCIAS
+
+#### 📊 Importação de Avaliações
+- ✅ **Interface Completa de Importação**
+  - Tab dedicada para importação em massa
+  - Upload de arquivos CSV e Excel (.xls, .xlsx)
+  - Download de templates (formato CSV e Excel)
+  - Preview dos dados antes de confirmar importação
+  - Contador de registros a importar
+  - Validação em tempo real
+
+- ✅ **Backend Robusto**
+  - Endpoint: `POST /api/avaliacoes/importar`
+  - **Busca Inteligente**: permite buscar alunos por matrícula OU nome
+  - **Busca Inteligente**: permite buscar disciplinas por código OU nome
+  - Vinculação automática com turmas e professores por nome
+  - Validação completa de campos obrigatórios
+  - Validação de tipos de avaliação (prova, trabalho, atividade, participação, recuperacao)
+  - Validação de notas (0-10) e trimestres (1-3)
+  - Relatório detalhado: total processados, sucessos, erros com detalhes por linha
+
+- ✅ **Template de Exemplo**
+  - Arquivo: `exemplos/avaliacoes_exemplo.csv`
+  - 10 registros de exemplo prontos para uso
+  - Todos os tipos de avaliação representados
+  - Campos obrigatórios e opcionais documentados
+  - Instruções detalhadas no README
+
+#### 📅 Importação de Frequências
+- ✅ **Interface Completa de Importação**
+  - Tab dedicada para importação em massa
+  - Upload de arquivos CSV e Excel (.xls, .xlsx)
+  - Download de templates (formato CSV e Excel)
+  - Preview dos dados antes de confirmar importação
+  - Contador de registros a importar
+  - Validação em tempo real
+
+- ✅ **Backend Inteligente**
+  - Endpoint: `POST /api/frequencias/importar`
+  - **Busca Inteligente**: permite buscar alunos por matrícula OU nome
+  - **Busca Inteligente**: permite buscar disciplinas por código OU nome
+  - **Atualização Inteligente**: registros duplicados (mesma data/aluno/disciplina) são atualizados automaticamente
+  - Vinculação automática com turmas e professores por nome
+  - Validação de status (presente, falta, falta-justificada, atestado)
+  - Validação de períodos (matutino, vespertino, noturno, integral)
+  - Cálculo automático de ano, mês e trimestre a partir da data
+  - Relatório detalhado: total, criados, atualizados, erros com detalhes por linha
+
+- ✅ **Template de Exemplo**
+  - Arquivo: `exemplos/frequencias_exemplo.csv`
+  - 15 registros de exemplo prontos para uso
+  - Múltiplas datas e períodos
+  - Diferentes status de frequência
+  - Campos obrigatórios e opcionais documentados
+  - Instruções detalhadas no README
+
+#### 🔌 Novos Endpoints da API
+```
+POST /api/avaliacoes/importar
+POST /api/frequencias/importar
+```
+
+#### 📦 Bibliotecas Utilizadas
+- ✅ `papaparse@^5.4.1` - Parsing de arquivos CSV no client-side
+- ✅ `xlsx@^0.18.5` (SheetJS) - Parsing e geração de arquivos Excel
+- ✅ Suporte para múltiplos formatos: CSV, XLS, XLSX
+
+#### 📚 Documentação Completa
+- ✅ **SISTEMA_IMPORTACAO_AVALIACOES_FREQUENCIAS.md** - Guia completo:
+  - Descrição detalhada de cada funcionalidade
+  - Formato dos arquivos (campos obrigatórios e opcionais)
+  - Exemplos de arquivos CSV e Excel
+  - Busca inteligente explicada
+  - Resposta da API documentada
+  - Observações e boas práticas
+  
+- ✅ **IMPORTACAO_EXCEL.md** (atualizado):
+  - Título atualizado: "Sistema Completo de Importação Excel/CSV"
+  - Novas seções: Módulo 3 (Avaliações) e Módulo 4 (Frequências)
+  - Instruções passo a passo para cada módulo
+  - Campos detalhados com tipos e obrigatoriedade
+  
+- ✅ **API_ENDPOINTS.md** (atualizado):
+  - Nova seção completa de Avaliações
+  - Nova seção completa de Frequências
+  - Endpoints de importação documentados com exemplos de request/response
+  - Busca inteligente explicada
+  - Atualização inteligente para frequências documentada
+  
+- ✅ **INDEX.md** (atualizado):
+  - Índice geral com 24 documentos organizados
+  - Novas referências para documentação de importação
+  - Estatísticas atualizadas
+  - Seção de últimas atualizações (Semana 3, Fevereiro 2026)
+
+- ✅ **exemplos/README.md** (atualizado):
+  - Seções adicionadas para Avaliações e Frequências
+  - Instruções de uso dos novos templates
+  - Formato dos arquivos explicado
+
+#### 🛠️ Implementação Técnica
+
+**Backend:**
+- ✅ `server/src/controllers/avaliacaoController.js`:
+  - Método `importarAvaliacoes` implementado
+  - Busca inteligente case-insensitive para alunos e disciplinas
+  - Processamento em lote eficiente
+  - Tratamento de erros individual por registro
+  
+- ✅ `server/src/controllers/frequenciaController.js`:
+  - Método `importarFrequencias` implementado
+  - Lógica de atualização para registros existentes (upsert)
+  - Busca inteligente case-insensitive
+  - Cálculo automático de campos derivados
+  
+- ✅ `server/src/routes/avaliacoes.js`:
+  - Rota `POST /importar` adicionada
+  - Middleware de autenticação (isProfessorOrAdmin)
+  
+- ✅ `server/src/routes/frequencias.js`:
+  - Rota `POST /importar` adicionada
+  - Middleware de autenticação padrão
+
+**Frontend:**
+- ✅ `client/src/pages/Avaliacoes.js`:
+  - Interface de importação em abas
+  - Funções: handleFileUpload, handleImport, downloadTemplate
+  - Suporte para CSV e Excel (detecção automática)
+  - Preview de dados parseados
+  - Feedback visual completo
+  
+- ✅ `client/src/pages/Frequencias.js`:
+  - Interface de importação em abas (padrão consistente)
+  - Funções: handleFileUpload, handleImport, downloadTemplate
+  - Suporte para CSV e Excel (detecção automática)
+  - Preview de dados parseados
+  - Feedback visual completo
+  
+- ✅ `client/src/services/index.js`:
+  - Método `avaliacaoService.importar(avaliacoes)` adicionado
+  - Método `frequenciaService.importar(frequencias)` adicionado
+
+#### 🎯 Benefícios
+- ⚡ Importação rápida de centenas de registros
+- 🔍 Busca flexível (matrícula ou nome, código ou nome)
+- 🔄 Atualização automática de registros duplicados (frequências)
+- ✅ Validação completa antes do processamento
+- 📊 Relatório detalhado de sucesso/erros
+- 📥 Templates prontos para uso
+- 📖 Documentação completa e organizada
+
+---
+
+## Versão 2.6 - 18 de Fevereiro de 2026
 
 ### ✨ SISTEMA COMPLETO DE RELATÓRIOS
 

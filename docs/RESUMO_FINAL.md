@@ -88,6 +88,57 @@ Atualizei o `README.md` para refletir:
 - Instruções de seed
 - Credenciais de teste
 
+### 4. Sistema de Importação em Massa para Avaliações e Frequências 🆕
+
+**Funcionalidade Completa de Importação:**
+
+#### Avaliações:
+- **Frontend** (`client/src/pages/Avaliacoes.js`):
+  - Interface com abas: Manual / Importação
+  - Upload de arquivos CSV e Excel (.xls, .xlsx)
+  - Download de templates (CSV e Excel)
+  - Preview dos dados antes de importar
+  - Validação em tempo real
+  - Feedback detalhado (total, sucesso, erros)
+
+- **Backend** (`server/src/controllers/avaliacaoController.js`):
+  - Endpoint: `POST /api/avaliacoes/importar`
+  - **Busca inteligente**: matricula_aluno OU aluno_nome, codigo_disciplina OU disciplina_nome
+  - Vinculação automática com turmas e professores
+  - Validação completa de campos obrigatórios e tipos
+  - Relatório detalhado por linha
+
+- **Templates** (`exemplos/avaliacoes_exemplo.csv`):
+  - 10 exemplos prontos para uso
+  - Todos os campos documentados
+  - Diferentes tipos de avaliação
+
+#### Frequências:
+- **Frontend** (`client/src/pages/Frequencias.js`):
+  - Interface idêntica ao padrão de importação
+  - Upload de arquivos CSV e Excel (.xls, .xlsx)
+  - Download de templates (CSV e Excel)
+  - Preview com contador de registros
+  - Validação de status e períodos
+
+- **Backend** (`server/src/controllers/frequenciaController.js`):
+  - Endpoint: `POST /api/frequencias/importar`
+  - **Busca inteligente**: matricula_aluno OU aluno_nome, codigo_disciplina OU disciplina_nome
+  - **Atualização inteligente**: registros duplicados (mesma data/aluno/disciplina) são atualizados automaticamente
+  - Cálculo automático de ano, mês e trimestre
+  - Relatório de criados/atualizados/erros
+
+- **Templates** (`exemplos/frequencias_exemplo.csv`):
+  - 15 exemplos prontos para uso
+  - Diferentes status (presente, falta, justificada, atestado)
+  - Múltiplas datas e períodos
+
+#### Documentação:
+- ✅ `SISTEMA_IMPORTACAO_AVALIACOES_FREQUENCIAS.md` - Guia completo
+- ✅ `IMPORTACAO_EXCEL.md` - Sistema unificado atualizado
+- ✅ `API_ENDPOINTS.md` - Endpoints documentados
+- ✅ `INDEX.md` - Índice com 24 documentos organizados
+
 ---
 
 ## 📁 Estrutura Completa do Sistema

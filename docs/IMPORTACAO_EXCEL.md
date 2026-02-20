@@ -1,16 +1,28 @@
-# 📥 Nova Funcionalidade: Importação Excel
+# 📥 Sistema Completo de Importação Excel/CSV
 
-## 🎉 Suporte a Arquivos Excel (.xlsx)
+## 🎉 Suporte a Arquivos Excel e CSV
 
-O sistema agora suporta importação de dados via **arquivos Excel** além de CSV!
+O sistema oferece importação completa de dados via **arquivos Excel (.xlsx, .xls) e CSV** para todos os módulos principais!
 
-### ✨ O que mudou?
+### ✨ Módulos com Importação
 
-#### Turmas e Alunos
+#### 1. Turmas e Alunos ✅
 - ✅ Aceita arquivos `.csv`, `.xlsx` e `.xls`
 - ✅ Detecção automática do tipo de arquivo
 - ✅ Download de templates em Excel ou CSV
 - ✅ Mesma interface para ambos os formatos
+
+#### 2. Avaliações (Notas) ✅ NOVO
+- ✅ Importação em lote de notas e avaliações
+- ✅ Busca inteligente por matrícula ou nome
+- ✅ Suporte para múltiplos tipos de avaliação
+- ✅ Cálculo automático de média trimestral
+
+#### 3. Frequências ✅ NOVO
+- ✅ Importação em lote de presenças/faltas
+- ✅ Atualização inteligente de registros duplicados
+- ✅ Validação automática de status
+- ✅ Relatórios detalhados de importação
 
 ### 📊 Como Usar
 
@@ -200,17 +212,122 @@ Arquivo: `template_alunos.xlsx`
    - Arquivo > Download > Excel (.xlsx)
    - Importe no sistema
 
+### 3. Importar Avaliações (Notas) via Excel 🆕
+
+1. Acesse **Avaliações** no menu
+2. Clique no botão **"Importar"** no topo da página
+3. Na aba **"Upload"**:
+   - Clique em **"Baixar Template Excel"** ou **"Baixar Template CSV"**
+   - Preencha o arquivo com as avaliações dos alunos:
+
+| matricula_aluno | aluno_nome | codigo_disciplina | disciplina_nome | turma_nome | professor_nome | ano | trimestre | tipo_avaliacao | descricao | nota | peso | data_avaliacao | observacoes |
+|-----------------|------------|-------------------|-----------------|------------|----------------|-----|-----------|----------------|-----------|------|------|----------------|-------------|
+| 2026001 | João Silva | MAT | Matemática | 1º Ano A | Prof. Carlos | 2026 | 1 | prova | Prova Bimestral | 8.5 | 3 | 2026-03-15 | Ótimo desempenho |
+
+**Campos Obrigatórios:**
+- `matricula_aluno` ou `aluno_nome`
+- `codigo_disciplina` ou `disciplina_nome`
+- `turma_nome`
+- `nota` (0 a 10)
+
+**Campos Opcionais:**
+- `professor_nome`, `ano`, `trimestre`, `tipo_avaliacao`, `descricao`, `peso`, `data_avaliacao`, `observacoes`
+
+**Tipos de Avaliação Disponíveis:**
+- `prova`, `trabalho`, `participacao`, `simulado`, `atividade`, `seminario`, `projeto`, `pesquisa`, `outro`
+
+4. Clique em **"Selecionar Arquivo"** e escolha seu arquivo
+5. Revise a lista de avaliações a serem importadas
+6. Clique em **"Importar"**
+
+### 4. Importar Frequências via Excel 🆕
+
+1. Acesse **Frequências** no menu
+2. Clique no botão **"Importar"** no topo da página
+3. Na aba **"Upload"**:
+   - Clique em **"Baixar Template Excel"** ou **"Baixar Template CSV"**
+   - Preencha o arquivo com as frequências:
+
+| matricula_aluno | aluno_nome | codigo_disciplina | disciplina_nome | turma_nome | professor_nome | data | status | periodo | observacao |
+|-----------------|------------|-------------------|-----------------|------------|----------------|------|--------|---------|------------|
+| 2026001 | João Silva | MAT | Matemática | 1º Ano A | Prof. Carlos | 2026-03-01 | presente | matutino | |
+| 2026002 | Ana Santos | POR | Português | 1º Ano A | Prof. Maria | 2026-03-01 | falta | matutino | Aluna avisou |
+
+**Campos Obrigatórios:**
+- `matricula_aluno` ou `aluno_nome`
+- `codigo_disciplina` ou `disciplina_nome`
+- `turma_nome`
+- `data` (formato: AAAA-MM-DD)
+
+**Campos Opcionais:**
+- `professor_nome`, `status`, `periodo`, `observacao`
+
+**Status Disponíveis:**
+- `presente` (padrão)
+- `falta`
+- `falta-justificada`
+- `atestado`
+
+**Períodos:**
+- `matutino`, `vespertino`, `noturno`, `integral`
+
+4. Clique em **"Selecionar Arquivo"** e escolha seu arquivo
+5. Revise a lista de registros a serem importados
+6. Clique em **"Importar"**
+
+**💡 Dica:** Para a mesma data/aluno/disciplina, o sistema atualiza o registro existente automaticamente!
+
 ### 📊 Recursos Futuros
 
 Planejado para próximas versões:
 
 - 🔜 Importação de Habilidades via Excel
-- 🔜 Importação de Avaliações via Excel
 - 🔜 Exportar dados existentes para Excel
 - 🔜 Validação avançada no Excel (macros)
 - 🔜 Templates com formatação e fórmulas
+- 🔜 Importação com vinculação de habilidades
+
+### 📁 Arquivos de Exemplo
+
+Na pasta `exemplos/` você encontra arquivos prontos para testar:
+
+- `turmas_exemplo.csv` - 12 turmas de exemplo
+- `alunos_exemplo.csv` - 15 alunos de exemplo
+- `avaliacoes_exemplo.csv` - 10 avaliações de exemplo 🆕
+- `frequencias_exemplo.csv` - 15 registros de frequência 🆕
+
+### 🎯 Busca Inteligente
+
+O sistema possui **busca inteligente** que facilita a importação:
+
+**Para Alunos:**
+- Use `matricula_aluno` (ex: 2026001) **OU**
+- Use `aluno_nome` (ex: João Silva)
+
+**Para Disciplinas:**
+- Use `codigo_disciplina` (ex: MAT) **OU**
+- Use `disciplina_nome` (ex: Matemática)
+
+**Para Turmas e Professores:**
+- Use o nome exato ou aproximado (busca case-insensitive)
+
+### 📊 Relatórios de Importação
+
+Após cada importação, você recebe um relatório completo:
+
+**Avaliações:**
+- Total de registros processados
+- Sucessos (novas avaliações criadas)
+- Erros (com detalhes de cada linha)
+
+**Frequências:**
+- Total de registros processados
+- Criados (novos registros)
+- Atualizados (registros existentes)
+- Erros (com detalhes de cada linha)
 
 ---
 
-**Atualizado em:** 19 de fevereiro de 2026  
-**Versão:** 2.0 - Suporte Excel Implementado ✅
+**Atualizado em:** 20 de fevereiro de 2026  
+**Versão:** 3.0 - Sistema Completo de Importação ✅  
+**Novidades:** Importação de Avaliações e Frequências

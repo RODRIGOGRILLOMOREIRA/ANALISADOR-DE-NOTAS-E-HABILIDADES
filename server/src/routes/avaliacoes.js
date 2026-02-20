@@ -10,7 +10,8 @@ const {
   deleteAvaliacao,
   getHabilidadesDisponiveis,
   updateHabilidadesAvaliacao,
-  getEvolucaoHabilidades
+  getEvolucaoHabilidades,
+  importarAvaliacoes
 } = require('../controllers/avaliacaoController');
 const { auth, isProfessorOrAdmin } = require('../middleware/auth');
 
@@ -20,6 +21,7 @@ router.route('/')
   .get(getAvaliacoes)
   .post(isProfessorOrAdmin, createAvaliacao);
 
+router.post('/importar', isProfessorOrAdmin, importarAvaliacoes);
 router.get('/habilidades-disponiveis', getHabilidadesDisponiveis);
 router.get('/aluno/:alunoId/media-anual', getMediaAnual);
 router.get('/aluno/:alunoId/evolucao-habilidades', getEvolucaoHabilidades);

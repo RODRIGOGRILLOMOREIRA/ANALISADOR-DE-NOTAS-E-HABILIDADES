@@ -418,3 +418,188 @@ exports.deleteFrequencia = async (req, res) => {
     res.status(500).json({ message: 'Erro ao deletar frequência', error: error.message });
   }
 };
+
+// @desc    Importar frequências em lote (CSV/Excel)
+// @route   POST /api/frequencias/importar
+exports.importarFrequencias = async (req, res) => {
+  try {
+    const { frequencias } = req.body; // Array de frequências
+    
+    if (!Array.isArray(frequencias) || frequencias.length === 0) {
+      return res.status(400).json({ message: 'É necessário fornecer um array de frequências' });
+    }
+    
+    const Turma = require('../models/Turma');
+    const Disciplina = require('../models/Disciplina');
+    const Professor = require('../models/Professor');
+    
+    const resultados = {
+      sucesso: 0,
+      erros: 0,
+      atualizados: 0,
+      detalhes: []
+    };
+    
+    for (const item of frequencias) {
+      try {
+        // Buscar IDs por matrícula, nome, código, etc
+        let alunoId = null;
+        let disciplinaId = null;
+        let turmaId = null;
+        let professorId = null;
+        
+        // Buscar aluno por matrícula ou nome
+        if (item.matricula_aluno) {
+          const aluno = await Aluno.findOne({ 
+            matricula: item.matricula_aluno, 
+            ativo: true 
+          });
+          alunoId = aluno?._id;
+        } else if (item.aluno_nome) {
+          const aluno = await Aluno.findOne({ 
+            nome: { $regex: new RegExp(item.aluno_nome, 'i') },
+            ativo: true 
+          }).limit(1);
+          alunoId = aluno?._id;
+        }
+        
+        // Buscar disciplina por código ou nome
+        if (item.codigo_disciplina) {
+          const disciplina = await Disciplina.findOne({ 
+            codigo: item.codigo_disciplina,
+            ativo: true 
+          });
+          disciplinaId = disciplina?._id;
+        } else if (item.disciplina_nome) {
+          const disciplina = await Disciplina.findOne({ 
+            nome: { $regex: new RegExp(item.disciplina_nome, 'i') },
+            ativo: true 
+          }).limit(1);
+          disciplinaId = disciplina?._id;
+        }
+        
+        // Buscar turma por nome
+        if (item.turma_nome) {
+          const turma = await Turma.findOne({ 
+            nome: { $regex: new RegExp(item.turma_nome, 'i') },
+            ativo: true 
+          }).limit(1);
+          turmaId = turma?._id;
+        }
+        
+        // Buscar professor por nome
+        if (item.professor_nome) {
+          const professor = await Professor.findOne({ 
+            nome: { $regex: new RegExp(item.professor_nome, 'i') },
+            ativo: true 
+          }).limit(1);
+          professorId = professor?._id;
+        }
+        
+        if (!alunoId || !disciplinaId || !turmaId) {
+          resultados.erros++;
+          resultados.detalhes.push({
+            linha: item.linha || resultados.sucesso + resultados.erros + resultados.atualizados,
+            erro: 'Aluno, disciplina ou turma não encontrados',
+            dados: item
+          });
+          continue;
+        }
+        
+        // Validar data
+        const data = item.data ? new Date(item.data) : null;
+        if (!data || isNaN(data.getTime())) {
+          resultados.erros++;
+          resultados.detalhes.push({
+            linha: item.linha || resultados.sucesso + resultados.erros + resultados.atualizados,
+            erro: 'Data inválida ou não fornecida',
+            dados: item
+          });
+          continue;
+        }
+        
+        // Validar status
+        const statusValidos = ['presente', 'falta', 'falta-justificada', 'atestado'];
+        const status = item.status?.toLowerCase() || 'presente';
+        if (!statusValidos.includes(status)) {
+          resultados.erros++;
+          resultados.detalhes.push({
+            linha: item.linha || resultados.sucesso + resultados.erros + resultados.atualizados,
+            erro: `Status inválido: ${item.status}. Use: ${statusValidos.join(', ')}`,
+            dados: item
+          });
+          continue;
+        }
+        
+        // Preparar dados da frequência
+        const frequenciaData = {
+          aluno: alunoId,
+          disciplina: disciplinaId,
+          turma: turmaId,
+          data: data,
+          status: status,
+          observacao: item.observacao || '',
+          periodo: item.periodo?.toLowerCase() || 'matutino',
+          ano: data.getFullYear()
+        };
+        
+        if (professorId) {
+          frequenciaData.professor = professorId;
+        }
+        
+        // Verificar se já existe registro para esta data/aluno/disciplina
+        const existente = await Frequencia.findOne({
+          aluno: alunoId,
+          disciplina: disciplinaId,
+          data: data
+        });
+        
+        if (existente) {
+          // Atualizar existente
+          existente.status = status;
+          existente.observacao = frequenciaData.observacao;
+          existente.periodo = frequenciaData.periodo;
+          if (professorId) existente.professor = professorId;
+          await existente.save();
+          
+          resultados.atualizados++;
+          resultados.detalhes.push({
+            linha: item.linha || resultados.sucesso + resultados.erros + resultados.atualizados,
+            status: 'atualizado',
+            frequenciaId: existente._id
+          });
+        } else {
+          // Criar novo
+          const frequencia = await Frequencia.create(frequenciaData);
+          
+          resultados.sucesso++;
+          resultados.detalhes.push({
+            linha: item.linha || resultados.sucesso + resultados.erros + resultados.atualizados,
+            status: 'criado',
+            frequenciaId: frequencia._id
+          });
+        }
+        
+      } catch (error) {
+        resultados.erros++;
+        resultados.detalhes.push({
+          linha: item.linha || resultados.sucesso + resultados.erros + resultados.atualizados,
+          erro: error.message,
+          dados: item
+        });
+      }
+    }
+    
+    res.json({
+      message: 'Importação concluída',
+      total: frequencias.length,
+      criados: resultados.sucesso,
+      atualizados: resultados.atualizados,
+      erros: resultados.erros,
+      detalhes: resultados.detalhes
+    });
+    
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao importar frequências', error: error.message });
+  }
+};

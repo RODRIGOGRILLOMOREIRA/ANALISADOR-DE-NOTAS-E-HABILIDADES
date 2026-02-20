@@ -9,7 +9,8 @@ const {
   getDashboardFrequencia,
   justificarFalta,
   updateFrequencia,
-  deleteFrequencia
+  deleteFrequencia,
+  importarFrequencias
 } = require('../controllers/frequenciaController');
 const { auth } = require('../middleware/auth');
 
@@ -20,6 +21,9 @@ router.use(auth);
 router.route('/')
   .get(getFrequencias)
   .post(registrarFrequencia);
+
+// Importar frequências
+router.post('/importar', importarFrequencias);
 
 // Dashboard de frequência
 router.get('/dashboard', getDashboardFrequencia);

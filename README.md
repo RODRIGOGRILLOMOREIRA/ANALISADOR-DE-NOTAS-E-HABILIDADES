@@ -11,7 +11,7 @@ Sistema completo para gestão de notas, habilidades, frequências e análise de 
 - **50+ professores** ✅
 - **9 turmas** (1º ao 9º ano) ✅
 - **MongoDB Atlas** (nuvem) ✅
-- **Importação CSV e Excel** de turmas e alunos ✅
+- **Importação CSV e Excel** de turmas, alunos, avaliações e frequências ✅ 🆕
 - **Sistema de Frequência em Tempo Real** ✅ 🆕
 - **Vinculação Professor-Turma-Disciplina** ✅ 🆕
 
@@ -52,9 +52,9 @@ Sistema completo para gestão de notas, habilidades, frequências e análise de 
 - ✅ **CRUD de Disciplinas (100% funcional)**
 - ✅ **CRUD de Turmas (100% funcional)** com importação/exportação CSV e Excel
 - ✅ **CRUD de Alunos (100% funcional)** com importação/exportação CSV e Excel
-- ✅ **Sistema de Avaliações (100% funcional)** com cálculo automático
+- ✅ **Sistema de Avaliações (100% funcional)** com cálculo automático e importação em massa 🆕
 - ✅ **Sistema de Habilidades (100% funcional)** com integração BNCC
-- ✅ **Sistema de Frequências (100% funcional)** 🆕
+- ✅ **Sistema de Frequências (100% funcional)** com importação em massa 🆕
   - 🟢 Interface com botões coloridos (Verde/Amarelo/Vermelho)
   - 📊 Estatísticas em tempo real
   - 💾 Salvamento em lote (chamada completa)
@@ -99,6 +99,14 @@ Sistema completo para gestão de notas, habilidades, frequências e análise de 
   - Percentual geral (cor dinâmica)
 - Salvamento em lote de toda a turma
 - Dialog para justificar faltas individualmente
+- **Importação em massa via CSV e Excel** 🆕
+  - Busca inteligente: matrícula OU nome do aluno
+  - Busca inteligente: código OU nome da disciplina
+  - Atualização inteligente: registros duplicados são atualizados automaticamente
+  - Vinculação automática com turmas e professores
+  - Templates prontos para download (CSV e Excel)
+  - Validação completa de status e períodos
+  - Relatório detalhado: criados/atualizados/erros
 
 **Dashboard de Frequência**:
 - 4 cards de métricas globais
@@ -176,7 +184,8 @@ npm run verificar      # Verifica saúde do banco
 - 📤 **[GITHUB.md](docs/GITHUB.md)** - Como publicar no GitHub
 
 ### Funcionalidades
-- 📥 **[IMPORTACAO_EXCEL.md](docs/IMPORTACAO_EXCEL.md)** - Importação via CSV e Excel
+- 📥 **[IMPORTACAO_EXCEL.md](docs/IMPORTACAO_EXCEL.md)** - Sistema completo de importação Excel/CSV
+- 📊 **[SISTEMA_IMPORTACAO_AVALIACOES_FREQUENCIAS.md](docs/SISTEMA_IMPORTACAO_AVALIACOES_FREQUENCIAS.md)** - Importação de Avaliações e Frequências 🆕
 - 📝 **[SISTEMA_AVALIACOES.md](docs/SISTEMA_AVALIACOES.md)** - Sistema de avaliações
 - 📅 **[SISTEMA_FREQUENCIA.md](docs/SISTEMA_FREQUENCIA.md)** - Sistema de frequência 🆕
 - 🎨 **[TEMA.md](docs/TEMA.md)** - Sistema de tema claro/escuro
@@ -427,6 +436,13 @@ PROJETO ANALIZADOR DE NOTAS E HABILIDADES/
 - **Cálculo trimestral**: soma simples (sem divisão)
 - **Validação automática**: limite de 10 pontos por trimestre
 - **Cálculo da média anual**: (T1×3 + T2×3 + T3×4)/10
+- **Importação em massa via CSV e Excel** 🆕
+  - Busca inteligente: matrícula OU nome do aluno
+  - Busca inteligente: código OU nome da disciplina
+  - Vinculação automática com turmas e professores
+  - Templates prontos para download
+  - Validação completa de dados
+  - Relatório detalhado de sucesso/erros
 - **Sincronização em tempo real** entre páginas
 - Interface intuitiva com seleção de turma > aluno > disciplina
 

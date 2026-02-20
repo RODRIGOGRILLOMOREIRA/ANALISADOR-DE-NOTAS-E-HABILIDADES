@@ -48,35 +48,99 @@
 
 ---
 
-### 3. **Biblioteca de Processamento CSV**
-**Instalação:** `papaparse`
+### 3. **Bibliotecas de Processamento de Arquivos**
 
+#### PapaParse (CSV):
 - ✅ Parsing de arquivos CSV client-side
 - ✅ Detecção automática de headers
 - ✅ Tratamento de erros
 - ✅ Suporte a caracteres especiais e acentos
 
+#### XLSX / SheetJS (Excel): 🆕
+- ✅ Parsing de arquivos Excel (.xls, .xlsx)
+- ✅ Conversão automática para JSON
+- ✅ Suporte a múltiplas sheets
+- ✅ Geração de templates Excel para download
+- ✅ Compatível com todas as versões do Excel
+
 ---
 
-### 4. **Arquivos de Exemplo**
+### 4. **Módulo de Avaliações Completo** 🆕
+**Arquivo:** `client/src/pages/Avaliacoes.js`
+
+#### Cadastro Manual:
+- ✅ Formulário completo com validações
+- ✅ Campos: Aluno, Disciplina, Turma, Tipo, Peso, Nota, Trimestre, Professor
+- ✅ Validação de notas (0-10) e pesos
+- ✅ Cálculo automático de médias
+- ✅ Botões de Editar e Excluir
+
+#### Importação em Massa:
+- ✅ Tab separada para importação
+- ✅ Upload de arquivos CSV e Excel (XLS/XLSX)
+- ✅ Download de templates (CSV e Excel)
+- ✅ Prévia dos dados antes de importar
+- ✅ **Busca inteligente**: matrícula OU nome do aluno, código OU nome da disciplina
+- ✅ Vinculação automática com turmas e professores
+- ✅ Validação de tipos de avaliação e trimestres
+- ✅ Importação em lote com feedback detalhado
+- ✅ Relatório de sucesso/erros por linha
+
+---
+
+### 5. **Módulo de Frequências Completo** 🆕
+**Arquivo:** `client/src/pages/Frequencias.js`
+
+#### Registro Manual:
+- ✅ Formulário para registro de frequência
+- ✅ Campos: Aluno, Disciplina, Turma, Data, Status, Período, Observação
+- ✅ Status: presente, falta, falta-justificada, atestado
+- ✅ Validação de datas e períodos
+- ✅ Controle de chamada por turma
+
+#### Importação em Massa:
+- ✅ Tab separada para importação
+- ✅ Upload de arquivos CSV e Excel (XLS/XLSX)
+- ✅ Download de templates (CSV e Excel)
+- ✅ Prévia dos dados antes de importar
+- ✅ **Busca inteligente**: matrícula OU nome do aluno, código OU nome da disciplina
+- ✅ Vinculação automática com turmas e professores
+- ✅ **Atualização inteligente**: registros duplicados (mesma data/aluno/disciplina) são atualizados
+- ✅ Validação de status de presença
+- ✅ Importação em lote com feedback detalhado
+- ✅ Relatório de criados/atualizados/erros
+
+---
+
+### 6. **Arquivos de Exemplo**
 **Pasta:** `/exemplos/`
 
 #### Arquivos Criados:
 - ✅ `turmas_exemplo.csv` - 12 turmas prontas para importar
 - ✅ `alunos_exemplo.csv` - 15 alunos prontos para importar
-- ✅ `README.md` - Instruções detalhadas de uso
+- ✅ `avaliacoes_exemplo.csv` - 10 avaliações prontas para importar 🆕
+- ✅ `frequencias_exemplo.csv` - 15 registros de frequência prontos para importar 🆕
+- ✅ `README.md` - Instruções detalhadas de uso (atualizado)
 
 ---
 
-### 5. **Documentação Completa**
-**Arquivo:** `CADASTRO_TURMAS_ALUNOS.md`
+### 7. **Documentação Completa**
 
+#### Documentos Criados:
+- ✅ `CADASTRO_TURMAS_ALUNOS.md` - Guia completo de cadastro de turmas e alunos
+- ✅ `SISTEMA_IMPORTACAO_AVALIACOES_FREQUENCIAS.md` - Guia completo de importação 🆕
+- ✅ `IMPORTACAO_EXCEL.md` - Sistema completo de importação Excel/CSV (atualizado) 🆕
+- ✅ `API_ENDPOINTS.md` - Documentação de todos os endpoints (atualizado) 🆕
+
+#### Conteúdo:
 - ✅ Guia completo de funcionalidades
 - ✅ Instruções passo a passo
-- ✅ Formato dos arquivos CSV
+- ✅ Formato dos arquivos CSV e Excel
 - ✅ Exemplos práticos
+- ✅ Busca inteligente explicada
 - ✅ Resolução de problemas comuns
 - ✅ Boas práticas
+- ✅ Endpoints da API documentados
 
 ---
 
@@ -131,6 +195,41 @@
     telefone: String,
     email: String
   }
+}
+```
+
+### Avaliações: 🆕
+```javascript
+// Campos do modelo
+{
+  aluno: ObjectId (ref: Aluno, obrigatório),
+  disciplina: ObjectId (ref: Disciplina, obrigatório),
+  turma: ObjectId (ref: Turma, obrigatório),
+  professor: ObjectId (ref: Professor),
+  tipo: Enum['prova','trabalho','atividade','participacao','recuperacao'],
+  nota: Number (0-10, obrigatório),
+  peso: Number (padrão: 1),
+  trimestre: Number (1-3, obrigatório),
+  data: Date,
+  observacoes: String
+}
+```
+
+### Frequências: 🆕
+```javascript
+// Campos do modelo
+{
+  aluno: ObjectId (ref: Aluno, obrigatório),
+  disciplina: ObjectId (ref: Disciplina, obrigatório),
+  turma: ObjectId (ref: Turma, obrigatório),
+  professor: ObjectId (ref: Professor),
+  data: Date (obrigatório),
+  status: Enum['presente','falta','falta-justificada','atestado'],
+  periodo: Enum['matutino','vespertino','noturno','integral'],
+  observacao: String,
+  ano: Number (auto-calculado),
+  mes: Number (auto-calculado),
+  trimestre: Number (auto-calculado)
 }
 ```
 

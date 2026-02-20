@@ -140,6 +140,11 @@ export const avaliacaoService = {
     const response = await api.delete(`/avaliacoes/${id}`);
     return response.data;
   },
+
+  importar: async (avaliacoes) => {
+    const response = await api.post('/avaliacoes/importar', { avaliacoes });
+    return response.data;
+  },
 };
 
 export const habilidadeService = {
@@ -317,6 +322,11 @@ export const frequenciaService = {
 
   delete: async (id) => {
     const response = await api.delete(`/frequencias/${id}`);
+    return response.data;
+  },
+
+  importar: async (frequencias) => {
+    const response = await api.post('/frequencias/importar', { frequencias });
     return response.data;
   },
 };

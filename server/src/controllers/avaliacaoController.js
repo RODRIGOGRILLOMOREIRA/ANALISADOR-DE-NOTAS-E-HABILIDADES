@@ -344,3 +344,170 @@ exports.getEvolucaoHabilidades = async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar evolução de habilidades', error: error.message });
   }
 };
+
+// @desc    Importar avaliações em lote (CSV/Excel)
+// @route   POST /api/avaliacoes/importar
+exports.importarAvaliacoes = async (req, res) => {
+  try {
+    const { avaliacoes } = req.body; // Array de avaliações
+    
+    if (!Array.isArray(avaliacoes) || avaliacoes.length === 0) {
+      return res.status(400).json({ message: 'É necessário fornecer um array de avaliações' });
+    }
+    
+    const Aluno = require('../models/Aluno');
+    const Disciplina = require('../models/Disciplina');
+    const Turma = require('../models/Turma');
+    const Professor = require('../models/Professor');
+    
+    const resultados = {
+      sucesso: 0,
+      erros: 0,
+      detalhes: []
+    };
+    
+    for (const item of avaliacoes) {
+      try {
+        // Buscar IDs por matrícula, nome, código, etc
+        let alunoId = null;
+        let disciplinaId = null;
+        let turmaId = null;
+        let professorId = null;
+        
+        // Buscar aluno por matrícula ou nome
+        if (item.matricula_aluno) {
+          const aluno = await Aluno.findOne({ 
+            matricula: item.matricula_aluno, 
+            ativo: true 
+          });
+          alunoId = aluno?._id;
+        } else if (item.aluno_nome) {
+          const aluno = await Aluno.findOne({ 
+            nome: { $regex: new RegExp(item.aluno_nome, 'i') },
+            ativo: true 
+          }).limit(1);
+          alunoId = aluno?._id;
+        }
+        
+        // Buscar disciplina por código ou nome
+        if (item.codigo_disciplina) {
+          const disciplina = await Disciplina.findOne({ 
+            codigo: item.codigo_disciplina,
+            ativo: true 
+          });
+          disciplinaId = disciplina?._id;
+        } else if (item.disciplina_nome) {
+          const disciplina = await Disciplina.findOne({ 
+            nome: { $regex: new RegExp(item.disciplina_nome, 'i') },
+            ativo: true 
+          }).limit(1);
+          disciplinaId = disciplina?._id;
+        }
+        
+        // Buscar turma por nome
+        if (item.turma_nome) {
+          const turma = await Turma.findOne({ 
+            nome: { $regex: new RegExp(item.turma_nome, 'i') },
+            ativo: true 
+          }).limit(1);
+          turmaId = turma?._id;
+        }
+        
+        // Buscar professor por nome (opcional)
+        if (item.professor_nome) {
+          const professor = await Professor.findOne({ 
+            nome: { $regex: new RegExp(item.professor_nome, 'i') },
+            ativo: true 
+          }).limit(1);
+          professorId = professor?._id;
+        }
+        
+        if (!alunoId || !disciplinaId || !turmaId) {
+          resultados.erros++;
+          resultados.detalhes.push({
+            linha: item.linha || resultados.sucesso + resultados.erros,
+            erro: 'Aluno, disciplina ou turma não encontrados',
+            dados: item
+          });
+          continue;
+        }
+        
+        // Preparar dados da avaliação
+        const avaliacaoData = {
+          aluno: alunoId,
+          disciplina: disciplinaId,
+          turma: turmaId,
+          ano: parseInt(item.ano) || new Date().getFullYear(),
+          trimestre: parseInt(item.trimestre) || 1,
+          observacoes: item.observacoes || ''
+        };
+        
+        if (professorId) {
+          avaliacaoData.professor = professorId;
+        }
+        
+        // Adicionar avaliações (notas)
+        const avaliacoesArray = [];
+        if (item.nota) {
+          avaliacoesArray.push({
+            tipo: item.tipo_avaliacao || 'prova',
+            descricao: item.descricao || '',
+            nota: parseFloat(item.nota),
+            peso: parseFloat(item.peso) || 1,
+            data: item.data_avaliacao ? new Date(item.data_avaliacao) : new Date()
+          });
+        }
+        
+        if (avaliacoesArray.length > 0) {
+          avaliacaoData.avaliacoes = avaliacoesArray;
+        }
+        
+        // Verificar se já existe avaliação para este aluno/disciplina/trimestre
+        let avaliacao = await Avaliacao.findOne({
+          aluno: alunoId,
+          disciplina: disciplinaId,
+          turma: turmaId,
+          ano: avaliacaoData.ano,
+          trimestre: avaliacaoData.trimestre
+        });
+        
+        if (avaliacao) {
+          // Adicionar nova nota à avaliação existente
+          if (avaliacoesArray.length > 0) {
+            avaliacao.avaliacoes.push(...avaliacoesArray);
+            await avaliacao.save();
+          }
+        } else {
+          // Criar nova avaliação
+          avaliacao = await Avaliacao.create(avaliacaoData);
+        }
+        
+        resultados.sucesso++;
+        resultados.detalhes.push({
+          linha: item.linha || resultados.sucesso + resultados.erros,
+          status: 'sucesso',
+          avaliacaoId: avaliacao._id
+        });
+        
+      } catch (error) {
+        resultados.erros++;
+        resultados.detalhes.push({
+          linha: item.linha || resultados.sucesso + resultados.erros,
+          erro: error.message,
+          dados: item
+        });
+      }
+    }
+    
+    res.json({
+      message: 'Importação concluída',
+      total: avaliacoes.length,
+      sucesso: resultados.sucesso,
+      erros: resultados.erros,
+      detalhes: resultados.detalhes
+    });
+    
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao importar avaliações', error: error.message });
+  }
+};

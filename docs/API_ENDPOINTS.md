@@ -350,6 +350,68 @@ Content-Type: application/json
 }
 ```
 
+### Importar Avaliações em Lote 🆕
+```http
+POST /avaliacoes/importar
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "avaliacoes": [
+    {
+      "matricula_aluno": "2026001",
+      "aluno_nome": "João Silva",
+      "codigo_disciplina": "MAT",
+      "disciplina_nome": "Matemática",
+      "turma_nome": "1º Ano A",
+      "professor_nome": "Prof. Carlos",
+      "ano": 2026,
+      "trimestre": 1,
+      "tipo_avaliacao": "prova",
+      "descricao": "Prova Bimestral",
+      "nota": 8.5,
+      "peso": 3,
+      "data_avaliacao": "2026-03-15",
+      "observacoes": "Ótimo desempenho"
+    },
+    {
+      "matricula_aluno": "2026002",
+      "codigo_disciplina": "POR",
+      "turma_nome": "1º Ano A",
+      "nota": 9.0,
+      "tipo_avaliacao": "trabalho",
+      "descricao": "Trabalho em Grupo"
+    }
+  ]
+}
+
+Response:
+{
+  "message": "Importação concluída",
+  "total": 2,
+  "sucesso": 2,
+  "erros": 0,
+  "detalhes": [
+    { "linha": 1, "status": "sucesso", "avaliacaoId": "..." },
+    { "linha": 2, "status": "sucesso", "avaliacaoId": "..." }
+  ]
+}
+
+# Campos Obrigatórios:
+- matricula_aluno OU aluno_nome
+- codigo_disciplina OU disciplina_nome
+- turma_nome
+- nota
+
+# Campos Opcionais:
+- professor_nome, ano, trimestre, tipo_avaliacao, descricao, peso, data_avaliacao, observacoes
+
+# Busca Inteligente:
+- Alunos: por matrícula ou nome (case-insensitive)
+- Disciplinas: por código ou nome (case-insensitive)
+- Turmas/Professores: por nome (case-insensitive)
+```
+
 ### Deletar
 ```http
 DELETE /avaliacoes/:id
@@ -436,7 +498,222 @@ Authorization: Bearer {token}
 
 ---
 
-## 📊 Dashboard
+## � Frequências
+
+### Listar Frequências
+```http
+GET /frequencias
+Authorization: Bearer {token}
+
+# Com filtros:
+GET /frequencias?aluno=alunoId&turma=turmaId&disciplina=disciplinaId&data=2026-03-15&status=falta&ano=2026&mes=3&trimestre=1
+Authorization: Bearer {token}
+```
+
+### Registrar Frequência
+```http
+POST /frequencias
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "aluno": "alunoId",
+  "turma": "turmaId",
+  "disciplina": "disciplinaId",
+  "professor": "professorId",
+  "data": "2026-03-15",
+  "status": "presente", // "presente", "falta", "falta-justificada", "atestado"
+  "periodo": "matutino", // "matutino", "vespertino", "noturno", "integral"
+  "observacao": "Participação ativa"
+}
+
+# OU Registrar múltiplas frequências de uma vez:
+{
+  "registros": [
+    {
+      "aluno": "alunoId1",
+      "turma": "turmaId",
+      "disciplina": "disciplinaId",
+      "professor": "professorId",
+      "data": "2026-03-15",
+      "status": "presente",
+      "periodo": "matutino"
+    },
+    {
+      "aluno": "alunoId2",
+      "turma": "turmaId",
+      "disciplina": "disciplinaId",
+      "professor": "professorId",
+      "data": "2026-03-15",
+      "status": "falta",
+      "periodo": "matutino"
+    }
+  ]
+}
+```
+
+### Registrar Chamada da Turma
+```http
+POST /frequencias/turma/:turmaId/chamada
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "data": "2026-03-15",
+  "disciplina": "disciplinaId",
+  "professor": "professorId",
+  "periodo": "matutino",
+  "presencas": {
+    "alunoId1": "presente",
+    "alunoId2": "falta",
+    "alunoId3": "presente"
+  }
+}
+```
+
+### Obter Frequência de um Aluno
+```http
+GET /frequencias/aluno/:alunoId?ano=2026&trimestre=1&disciplina=disciplinaId
+Authorization: Bearer {token}
+
+Response:
+{
+  "total": 60,
+  "presencas": 55,
+  "faltas": 3,
+  "faltasJustificadas": 2,
+  "percentualPresenca": 91.67,
+  "statusFrequencia": {
+    "color": "success",
+    "label": "Boa Frequência"
+  },
+  "frequencias": [...]
+}
+```
+
+### Obter Frequência da Turma em uma Data
+```http
+GET /frequencias/turma/:turmaId/dia/:data?disciplina=disciplinaId
+Authorization: Bearer {token}
+```
+
+### Dashboard de Frequência
+```http
+GET /frequencias/dashboard?turma=turmaId&ano=2026&mes=3
+Authorization: Bearer {token}
+
+Response:
+{
+  "totalAlunos": 30,
+  "percentualPresencaGeral": 85.5,
+  "alunosCriticos": [
+    {
+      "aluno": { "nome": "João Silva", "matricula": "2026001" },
+      "percentualPresenca": 65.0,
+      "totalFaltas": 21
+    }
+  ],
+  "estatisticasPorDia": [...]
+}
+```
+
+### Importar Frequências em Lote 🆕
+```http
+POST /frequencias/importar
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "frequencias": [
+    {
+      "matricula_aluno": "2026001",
+      "aluno_nome": "João Silva",
+      "codigo_disciplina": "MAT",
+      "disciplina_nome": "Matemática",
+      "turma_nome": "1º Ano A",
+      "professor_nome": "Prof. Carlos",
+      "data": "2026-03-15",
+      "status": "presente",
+      "periodo": "matutino",
+      "observacao": ""
+    },
+    {
+      "matricula_aluno": "2026002",
+      "codigo_disciplina": "POR",
+      "turma_nome": "1º Ano A",
+      "data": "2026-03-15",
+      "status": "falta",
+      "periodo": "matutino",
+      "observacao": "Aluna avisou"
+    }
+  ]
+}
+
+Response:
+{
+  "message": "Importação concluída",
+  "total": 2,
+  "criados": 1,
+  "atualizados": 1,
+  "erros": 0,
+  "detalhes": [
+    { "linha": 1, "status": "criado", "frequenciaId": "..." },
+    { "linha": 2, "status": "atualizado", "frequenciaId": "..." }
+  ]
+}
+
+# Campos Obrigatórios:
+- matricula_aluno OU aluno_nome
+- codigo_disciplina OU disciplina_nome
+- turma_nome
+- data (formato: AAAA-MM-DD)
+
+# Campos Opcionais:
+- professor_nome, status (padrão: "presente"), periodo, observacao
+
+# Busca Inteligente:
+- Alunos: por matrícula ou nome (case-insensitive)
+- Disciplinas: por código ou nome (case-insensitive)
+- Turmas/Professores: por nome (case-insensitive)
+
+# Atualização Inteligente:
+- Para a mesma data/aluno/disciplina, o registro existente é atualizado
+```
+
+### Justificar Falta
+```http
+PUT /frequencias/:id/justificar
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "descricao": "Atestado médico",
+  "anexo": "url-do-anexo",
+  "dataJustificativa": "2026-03-16"
+}
+```
+
+### Atualizar Frequência
+```http
+PUT /frequencias/:id
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "status": "falta-justificada",
+  "observacao": "Atestado apresentado"
+}
+```
+
+### Deletar Frequência
+```http
+DELETE /frequencias/:id
+Authorization: Bearer {token}
+```
+
+---
+
+## �📊 Dashboard
 
 ### Estatísticas Gerais
 ```http
