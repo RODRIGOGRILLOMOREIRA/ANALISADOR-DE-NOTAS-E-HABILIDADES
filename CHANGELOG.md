@@ -1,6 +1,72 @@
 # 📋 Changelog - Sistema Analisador de Notas e Habilidades
 
-## Versão 2.9.1 - 21 de Fevereiro de 2026 🐛
+## Versão 2.10 - 21 de Fevereiro de 2026 🆕
+
+### ✨ TEMPLATE PERSONALIZADO PARA IMPORTAÇÃO DE ALUNOS
+
+#### 📥 Template por Turma - Alunos
+- ✅ **Novo Endpoint: GET /api/alunos/template/:turmaId**
+  - Gera template CSV/Excel específico para uma turma
+  - Nome da turma já pré-preenchido no template
+  - Informações da turma incluídas (série, ano, turno, capacidade)
+  - Exemplos de preenchimento inclusos
+  - Reduz erros ao cadastrar alunos em turmas específicas
+
+- ✅ **Frontend Atualizado**
+  - Seletor de Turma no diálogo de importação de Alunos
+  - Interface consistente com Avaliações e Frequências
+  - Template baixado com nome personalizado: `alunos_NomeDaTurma.xlsx`
+  - Mensagem de sucesso específica da turma
+
+- ✅ **Template Excel com Instruções**
+  - Segunda aba "Instruções" com:
+    - Informações da turma (nome, ano, série, turno, capacidade)
+    - Orientações de preenchimento por campo
+    - Dicas sobre matrícula automática
+    - Formato de data e dados do responsável
+  - Exemplos de alunos no template
+  - Campo "turma" pré-preenchido
+
+#### 💡 Benefícios
+- ⏱️ **Velocidade:** Turma já preenchida economiza tempo
+- ✅ **Precisão:** Elimina erros de digitação no nome da turma
+- 🎨 **Usabilidade:** Interface consistente em todo o sistema
+- 📚 **Padronização:** Todos os módulos seguem o mesmo padrão
+
+#### 📦 Arquivos Atualizados
+- ✅ **server/src/controllers/alunoController.js**
+  - Adicionado método `gerarTemplatePorTurma`
+  - Validação de ID da turma
+  - Template com estrutura completa de alunos
+  - Instruções detalhadas
+
+- ✅ **server/src/routes/alunos.js**
+  - Nova rota GET `/api/alunos/template/:turmaId`
+  - Rota protegida por autenticação
+
+- ✅ **client/src/services/index.js**
+  - Adicionado método `alunoService.getTemplatePorTurma`
+
+- ✅ **client/src/pages/Alunos.js**
+  - Estado `turmaSelecionadaTemplate`
+  - Seletor visual no diálogo de importação
+  - Função `downloadTemplate` atualizada
+  - Suporte a template personalizado e genérico
+  - Instruções incluídas no Excel
+
+#### 🎯 Como Usar
+1. Acesse **Alunos** no menu
+2. Clique em **Novo Aluno**
+3. Vá para aba **Importar Arquivo**
+4. **Selecione a Turma** no dropdown
+5. Clique em **Baixar Modelo CSV** ou **Excel**
+6. O campo "turma" já estará preenchido
+7. Preencha apenas dados dos alunos
+8. Importe o arquivo
+
+---
+
+## Versão 2.9.1 - 21 de Fevereiro de 2026
 
 ### 🐛 CORREÇÕES DE BUGS
 

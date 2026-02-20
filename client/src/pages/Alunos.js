@@ -55,6 +55,7 @@ const Alunos = () => {
   });
   const [editId, setEditId] = useState(null);
   const [importData, setImportData] = useState([]);
+  const [turmaSelecionadaTemplate, setTurmaSelecionadaTemplate] = useState('');
 
   useEffect(() => {
     loadAlunos();
@@ -263,53 +264,115 @@ const Alunos = () => {
     }
   };
 
-  const downloadTemplate = (format = 'csv') => {
-    if (format === 'excel') {
-      // Criar template Excel
-      const ws = XLSX.utils.json_to_sheet([
-        {
-          nome: 'João Silva',
-          matricula: '2026001',
-          dataNascimento: '2010-05-15',
-          turma: '1º Ano A',
-          responsavel_nome: 'Maria Silva',
-          responsavel_telefone: '(11) 98765-4321',
-          responsavel_email: 'maria@email.com'
-        },
-        {
-          nome: 'Ana Santos',
-          matricula: '2026002',
-          dataNascimento: '2011-08-20',
-          turma: '2º Ano B',
-          responsavel_nome: 'Carlos Santos',
-          responsavel_telefone: '(11) 91234-5678',
-          responsavel_email: 'carlos@email.com'
-        },
-        {
-          nome: 'Pedro Costa',
-          matricula: '2026003',
-          dataNascimento: '2009-03-10',
-          turma: '3º Ano C',
-          responsavel_nome: 'Lucia Costa',
-          responsavel_telefone: '(11) 99876-5432',
-          responsavel_email: 'lucia@email.com'
+  const downloadTemplate = async (format = 'csv') => {
+    try {
+      // Se há turma selecionada, baixar template personalizado
+      if (turmaSelecionadaTemplate) {
+        const response = await alunoService.getTemplatePorTurma(turmaSelecionadaTemplate);
+        const { turma, template, instrucoes } = response;
+
+        if (format === 'excel') {
+          const ws = XLSX.utils.json_to_sheet(template);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Alunos');
+          
+          // Adicionar instruções em outra aba
+          const wsInstrucoes = XLSX.utils.aoa_to_sheet([
+            ['INSTRUÇÕES PARA PREENCHIMENTO DE ALUNOS'],
+            [''],
+            ['INFORMAÇÕES DA TURMA:'],
+            [`Turma: ${turma.nome}`],
+            [`Ano: ${turma.ano}`],
+            [`Série: ${turma.serie}`],
+            [`Turno: ${turma.turno}`],
+            [`Capacidade Máxima: ${turma.capacidadeMaxima} alunos`],
+            [''],
+            ['INSTRUÇÕES:'],
+            [instrucoes.turma],
+            [instrucoes.matricula],
+            [instrucoes.dataNascimento],
+            [instrucoes.responsavel],
+            [instrucoes.dica],
+            [''],
+            ['IMPORTANTE:'],
+            ['- Campo "turma" já está preenchido, não altere'],
+            ['- Data de nascimento no formato AAAA-MM-DD'],
+            ['- Preencha todos os dados do responsável'],
+            ['- As 2 primeiras linhas são exemplos, podem ser apagadas'],
+          ]);
+          XLSX.utils.book_append_sheet(wb, wsInstrucoes, 'Instruções');
+          
+          const fileName = `alunos_${turma.nome.replace(/\s+/g, '_')}.xlsx`;
+          XLSX.writeFile(wb, fileName);
+        } else {
+          const csv = Papa.unparse(template);
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          const fileName = `alunos_${turma.nome.replace(/\s+/g, '_')}.csv`;
+          link.download = fileName;
+          link.click();
         }
-      ]);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Alunos');
-      XLSX.writeFile(wb, 'template_alunos.xlsx');
-    } else {
-      // Criar template CSV
-      const csv = 'nome,matricula,dataNascimento,turma,responsavel_nome,responsavel_telefone,responsavel_email\n' +
-                  'João Silva,2026001,2010-05-15,1º Ano A,Maria Silva,(11) 98765-4321,maria@email.com\n' +
-                  'Ana Santos,2026002,2011-08-20,2º Ano B,Carlos Santos,(11) 91234-5678,carlos@email.com\n' +
-                  'Pedro Costa,2026003,2009-03-10,3º Ano C,Lucia Costa,(11) 99876-5432,lucia@email.com';
-      
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'template_alunos.csv';
-      link.click();
+
+        toast.success(`Template para turma ${turma.nome} baixado com sucesso!`);
+        return;
+      }
+
+      // Template genérico (comportamento anterior)
+      if (format === 'excel') {
+        // Criar template Excel
+        const ws = XLSX.utils.json_to_sheet([
+          {
+            nome: 'João Silva',
+            matricula: '2026001',
+            dataNascimento: '2010-05-15',
+            turma: '1º Ano A',
+            responsavel_nome: 'Maria Silva',
+            responsavel_telefone: '(11) 98765-4321',
+            responsavel_email: 'maria@email.com'
+          },
+          {
+            nome: 'Ana Santos',
+            matricula: '2026002',
+            dataNascimento: '2011-08-20',
+            turma: '2º Ano B',
+            responsavel_nome: 'Carlos Santos',
+            responsavel_telefone: '(11) 91234-5678',
+            responsavel_email: 'carlos@email.com'
+          },
+          {
+            nome: 'Pedro Costa',
+            matricula: '2026003',
+            dataNascimento: '2009-03-10',
+            turma: '3º Ano C',
+            responsavel_nome: 'Lucia Costa',
+            responsavel_telefone: '(11) 99876-5432',
+            responsavel_email: 'lucia@email.com'
+          }
+        ]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Alunos');
+        XLSX.writeFile(wb, 'template_alunos.xlsx');
+      } else {
+        // Criar template CSV
+        const csv = 'nome,matricula,dataNascimento,turma,responsavel_nome,responsavel_telefone,responsavel_email\n' +
+                    'João Silva,2026001,2010-05-15,1º Ano A,Maria Silva,(11) 98765-4321,maria@email.com\n' +
+                    'Ana Santos,2026002,2011-08-20,2º Ano B,Carlos Santos,(11) 91234-5678,carlos@email.com\n' +
+                    'Pedro Costa,2026003,2009-03-10,3º Ano C,Lucia Costa,(11) 99876-5432,lucia@email.com';
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'template_alunos.csv';
+        link.click();
+      }
+    } catch (error) {
+      console.error('Erro ao baixar template:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.detalhes || 
+                          error.message || 
+                          'Erro desconhecido ao baixar template';
+      toast.error(errorMessage);
     }
   };
 
@@ -551,6 +614,34 @@ const Alunos = () => {
                 <br />
                 Turma: nome exato da turma cadastrada
               </Alert>
+
+              {/* Seletor para template personalizado */}
+              <Box sx={{ mb: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="subtitle2" gutterBottom color="primary">
+                  Template Personalizado por Turma
+                </Typography>
+                <Typography variant="caption" display="block" sx={{ mb: 2, color: 'text.secondary' }}>
+                  Baixe um template com o nome da turma já preenchido
+                </Typography>
+                
+                <TextField
+                  select
+                  fullWidth
+                  label="Selecione a Turma"
+                  value={turmaSelecionadaTemplate}
+                  onChange={(e) => setTurmaSelecionadaTemplate(e.target.value)}
+                  size="small"
+                >
+                  <MenuItem value="">
+                    <em>Template genérico (todas as turmas)</em>
+                  </MenuItem>
+                  {turmas.map((turma) => (
+                    <MenuItem key={turma._id} value={turma._id}>
+                      {turma.nome} - {turma.serie} ({turma.turno})
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
 
               <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
                 <Button

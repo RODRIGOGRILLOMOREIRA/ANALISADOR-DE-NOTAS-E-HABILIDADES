@@ -108,6 +108,11 @@ export const alunoService = {
     const response = await api.delete(`/alunos/${id}`);
     return response.data;
   },
+
+  getTemplatePorTurma: async (turmaId, params = {}) => {
+    const response = await api.get(`/alunos/template/${turmaId}`, { params });
+    return response.data;
+  },
 };
 
 export const avaliacaoService = {

@@ -94,8 +94,9 @@ Para facilitar o preenchimento, use a coluna `status_codigo` em vez de escrever 
 2. Acesse o sistema e vá em **Alunos**
 3. Clique em **Novo Aluno**
 4. Selecione a aba **Importar Arquivo**
-5. Clique em **Selecionar Arquivo CSV** e escolha `alunos_exemplo.csv`
-6. Revise os dados e clique em **Importar**
+5. **RECOMENDADO:** Selecione uma turma específica para baixar um template personalizado com o nome da turma já preenchido 🆕
+6. Clique em **Selecionar Arquivo CSV** e escolha `alunos_exemplo.csv` ou o template personalizado
+7. Revise os dados e clique em **Importar**
 
 ### Importar Avaliações (Notas):
 1. **IMPORTANTE:** Certifique-se de que alunos, turmas e disciplinas já foram cadastrados

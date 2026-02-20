@@ -46,16 +46,21 @@ O sistema oferece importação completa de dados via **arquivos Excel (.xlsx, .x
 
 1. Acesse **Alunos** > **Novo Aluno**
 2. Clique na aba **"Importar Arquivo"**
-3. Clique em **"Baixar Modelo Excel"** (botão verde)
-4. Preencha o arquivo Excel com seus alunos:
+3. **NOVO:** Selecione uma turma específica no dropdown para template personalizado 🆕
+   - Template virá com o nome da turma já preenchido
+   - Ou deixe vazio para template genérico com exemplos de várias turmas
+4. Clique em **"Baixar Modelo Excel"** (botão verde)
+5. Preencha o arquivo Excel com seus alunos:
 
 | nome | matricula | dataNascimento | turma | responsavel_nome | responsavel_telefone | responsavel_email |
 |------|-----------|----------------|-------|------------------|---------------------|-------------------|
 | João Silva | 2026001 | 2010-05-15 | 1º Ano A | Maria Silva | (11) 98765-4321 | maria@email.com |
 
-5. Clique em **"Selecionar Arquivo"**
-6. Escolha o arquivo `.xlsx` preenchido
-7. Clique em **"Importar"**
+**💡 Dica:** Se baixou template personalizado, o campo "turma" já estará preenchido!
+
+6. Clique em **"Selecionar Arquivo"**
+7. Escolha o arquivo `.xlsx` preenchido
+8. Clique em **"Importar"**
 
 ### 🔧 Detalhes Técnicos
 

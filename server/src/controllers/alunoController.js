@@ -97,3 +97,78 @@ exports.deleteAluno = async (req, res) => {
     res.status(500).json({ message: 'Erro ao deletar aluno', error: error.message });
   }
 };
+
+// @desc    Gerar template de alunos por turma
+// @route   GET /api/alunos/template/:turmaId
+exports.gerarTemplatePorTurma = async (req, res) => {
+  try {
+    const { turmaId } = req.params;
+    const Turma = require('../models/Turma');
+    
+    // Validar ID da turma
+    if (!turmaId || turmaId === 'undefined' || turmaId === 'null') {
+      return res.status(400).json({ message: 'ID da turma inválido' });
+    }
+    
+    // Buscar turma
+    const turma = await Turma.findById(turmaId);
+    if (!turma) {
+      return res.status(404).json({ message: 'Turma não encontrada' });
+    }
+    
+    // Gerar template vazio com estrutura correta para a turma
+    // Incluir alguns exemplos para orientação
+    const template = [
+      {
+        nome: 'João Silva',
+        matricula: '',
+        dataNascimento: '2010-05-15',
+        turma: turma.nome,
+        responsavel_nome: 'Maria Silva',
+        responsavel_telefone: '(11) 98765-4321',
+        responsavel_email: 'maria@email.com'
+      },
+      {
+        nome: 'Ana Santos',
+        matricula: '',
+        dataNascimento: '2011-08-20',
+        turma: turma.nome,
+        responsavel_nome: 'Carlos Santos',
+        responsavel_telefone: '(11) 91234-5678',
+        responsavel_email: 'carlos@email.com'
+      },
+      {
+        nome: '',
+        matricula: '',
+        dataNascimento: '',
+        turma: turma.nome,
+        responsavel_nome: '',
+        responsavel_telefone: '',
+        responsavel_email: ''
+      }
+    ];
+    
+    res.json({
+      turma: {
+        id: turma._id,
+        nome: turma.nome,
+        ano: turma.ano,
+        serie: turma.serie,
+        turno: turma.turno,
+        capacidadeMaxima: turma.capacidadeMaxima
+      },
+      template,
+      instrucoes: {
+        turma: `Campo turma já está preenchido com "${turma.nome}"`,
+        matricula: 'Matrícula será gerada automaticamente se deixada em branco',
+        dataNascimento: 'Formato: AAAA-MM-DD (ex: 2010-05-15)',
+        responsavel: 'Preencha todos os dados do responsável',
+        dica: 'As 2 primeiras linhas são exemplos. Você pode apagá-las e preencher seus dados'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Erro ao gerar template de alunos:', error);
+    res.status(500).json({ message: 'Erro ao gerar template', error: error.message });
+  }
+};

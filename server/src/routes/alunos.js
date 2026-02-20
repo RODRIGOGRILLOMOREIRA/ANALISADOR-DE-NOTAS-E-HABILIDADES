@@ -5,7 +5,8 @@ const {
   getAlunoById,
   createAluno,
   updateAluno,
-  deleteAluno
+  deleteAluno,
+  gerarTemplatePorTurma
 } = require('../controllers/alunoController');
 const { auth, isAdmin } = require('../middleware/auth');
 
@@ -14,6 +15,9 @@ router.use(auth);
 router.route('/')
   .get(getAlunos)
   .post(isAdmin, createAluno);
+
+// Gerar template de alunos por turma
+router.get('/template/:turmaId', gerarTemplatePorTurma);
 
 router.route('/:id')
   .get(getAlunoById)
