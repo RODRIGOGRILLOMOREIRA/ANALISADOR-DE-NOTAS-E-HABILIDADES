@@ -48,6 +48,7 @@ import {
 } from '@mui/icons-material';
 import { avaliacaoService, turmaService, disciplinaService, alunoService } from '../services';
 import { toast } from 'react-toastify';
+import PageHeader from '../components/PageHeader';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
@@ -600,19 +601,14 @@ const Avaliacoes = () => {
 
   return (
     <Container maxWidth="xl">
+      <PageHeader 
+        title="Avaliações"
+        subtitle="Gerencie e lance notas das avaliações dos alunos"
+        icon={Assessment}
+      />
+      
       <Zoom in={true} timeout={400}>
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            mb: 3 
-          }}
-        >
-          <Typography variant="h4" component="h1" fontWeight="600">
-            📊 Lançamento de Avaliações
-          </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', mb: 3 }}>
           <Tooltip title="Importar avaliações em lote">
             <Button
               variant="outlined"
@@ -669,7 +665,6 @@ const Avaliacoes = () => {
             Atualizar
           </Button>
         </Box>
-      </Box>
       </Zoom>
 
       {/* Filtros */}
@@ -1095,7 +1090,7 @@ const Avaliacoes = () => {
               <Typography variant="h6" gutterBottom>
                 📊 Nota Trimestral Calculada
               </Typography>
-              <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+              <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#4169E1' }}>
                 {calcularNotaTrimestral(novasAvaliacoes)}
               </Typography>
               <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>

@@ -19,8 +19,8 @@ const darkColors = {
 const lightColors = {
   primary: '#008B8B',
   secondary: '#00CED1',
-  background: '#EBEBEB',
-  paper: '#F8F8F8',
+  background: '#BDBDBD',
+  paper: '#FFFFFF',
   text: '#1A1A1A',
 };
 
@@ -132,6 +132,30 @@ export const darkTheme = createTheme({
         },
       },
     },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': {
+            height: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: darkColors.primary,
+            borderRadius: '4px',
+          },
+        },
+      },
+    },
+    MuiTable: {
+      styleOverrides: {
+        root: {
+          minWidth: '650px',
+        },
+      },
+    },
     MuiTableHead: {
       styleOverrides: {
         root: {
@@ -179,8 +203,8 @@ export const lightTheme = createTheme({
       contrastText: '#FFFFFF',
     },
     background: {
-      default: lightColors.background,
-      paper: lightColors.paper,
+      default: lightColors.background, // Cinza mais escuro para o fundo
+      paper: lightColors.paper, // Branco para caixas e tabelas
     },
     text: {
       primary: lightColors.text,
@@ -242,7 +266,7 @@ export const lightTheme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundColor: '#F0F0F0',
+          backgroundColor: '#FFFFFF',
           borderRight: `1px solid ${lightColors.primary}`,
         },
       },
@@ -268,6 +292,40 @@ export const lightTheme = createTheme({
           borderRadius: 12,
           border: `1px solid rgba(0, 139, 139, 0.2)`,
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+        },
+      },
+    },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': {
+            height: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: 'rgba(0, 0, 0, 0.05)',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: lightColors.primary,
+            borderRadius: '4px',
+          },
+        },
+      },
+    },
+    MuiTable: {
+      styleOverrides: {
+        root: {
+          minWidth: '650px',
+        },
+      },
+    },
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          '@media (max-width: 600px)': {
+            paddingLeft: '8px',
+            paddingRight: '8px',
+          },
         },
       },
     },

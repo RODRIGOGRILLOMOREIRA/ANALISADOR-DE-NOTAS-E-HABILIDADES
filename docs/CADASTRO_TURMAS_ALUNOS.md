@@ -143,11 +143,11 @@ nome,ano,serie,turno,capacidadeMaxima
 
 ```csv
 nome,matricula,dataNascimento,turma,responsavel_nome,responsavel_telefone,responsavel_email
-João Silva Santos,2026001,2010-05-15,1º Ano A,Maria Silva,(11) 98765-4321,maria@email.com
-Ana Paula Costa,2026002,2011-08-20,1º Ano A,Carlos Costa,(11) 91234-5678,carlos@email.com
+João Silva Santos,2026001,15/05/2010,1º Ano A,Maria Silva,(11) 98765-4321,maria@email.com
+Ana Paula Costa,2026002,20/08/2011,1º Ano A,Carlos Costa,(11) 91234-5678,carlos@email.com
 ```
 
-**Formato da data:** `AAAA-MM-DD` (ex: 2010-05-15)  
+**Formato da data:** `dd/mm/aaaa` (ex: 15/05/2010)  
 **Nome da turma:** Deve corresponder exatamente ao nome cadastrado
 
 ---
@@ -211,8 +211,8 @@ Para testar o sistema:
 - Verifique se o aluno já não foi cadastrado
 
 **"Formato de data inválido"**
-- Use sempre o formato AAAA-MM-DD
-- Exemplo correto: 2010-05-15
+- Use sempre o formato dd/mm/aaaa
+- Exemplo correto: 15/05/2010
 
 **"Turno inválido"**
 - Use apenas: matutino, vespertino, noturno, integral

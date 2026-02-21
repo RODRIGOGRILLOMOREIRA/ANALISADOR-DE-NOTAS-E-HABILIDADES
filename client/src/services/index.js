@@ -229,6 +229,11 @@ export const dashboardService = {
     const response = await api.get('/dashboard/distribuicao-niveis-habilidades', { params });
     return response.data;
   },
+
+  getContagemAlunos: async (params = {}) => {
+    const response = await api.get('/dashboard/contagem-alunos', { params });
+    return response.data;
+  },
 };
 
 export const relatorioService = {

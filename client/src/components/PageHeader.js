@@ -8,20 +8,22 @@ const PageHeader = ({ title, subtitle, icon: Icon }) => {
   return (
     <Box 
       sx={{ 
-        mb: 4,
+        mb: { xs: 2, sm: 3, md: 4 },
         textAlign: 'center',
         position: 'relative',
+        px: { xs: 1, sm: 2 },
       }}
     >
       {/* Nome da Escola */}
       <Box 
         sx={{ 
           display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
           alignItems: 'center', 
           justifyContent: 'center',
-          gap: 2,
-          mb: 3,
-          pb: 2,
+          gap: { xs: 1, sm: 2 },
+          mb: { xs: 2, sm: 3 },
+          pb: { xs: 1.5, sm: 2 },
           borderBottom: (theme) => `2px solid ${theme.palette.primary.main}`,
         }}
       >
@@ -37,8 +39,8 @@ const PageHeader = ({ title, subtitle, icon: Icon }) => {
               }
             }}
             sx={{ 
-              width: 56, 
-              height: 56,
+              width: { xs: 48, sm: 56 }, 
+              height: { xs: 48, sm: 56 },
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
             }}
           />
@@ -49,6 +51,7 @@ const PageHeader = ({ title, subtitle, icon: Icon }) => {
           sx={{ 
             fontFamily: '"Poppins", sans-serif',
             fontWeight: 700,
+            fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.125rem' },
             letterSpacing: '0.5px',
             background: (theme) => theme.palette.mode === 'dark'
               ? 'linear-gradient(135deg, #00bcd4 0%, #00ffff 100%)'
@@ -64,14 +67,15 @@ const PageHeader = ({ title, subtitle, icon: Icon }) => {
 
       {/* Título da Página */}
       {title && (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-          {Icon && <Icon sx={{ fontSize: 32, color: 'primary.main' }} />}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: { xs: 0.5, sm: 1 }, flexWrap: 'wrap' }}>
+          {Icon && <Icon sx={{ fontSize: { xs: 24, sm: 28, md: 32 }, color: 'primary.main' }} />}
           <Typography 
             variant="h5" 
             component="h2"
             sx={{ 
               fontFamily: '"Poppins", sans-serif',
               fontWeight: 600,
+              fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.5rem' },
             }}
           >
             {title}
@@ -86,8 +90,11 @@ const PageHeader = ({ title, subtitle, icon: Icon }) => {
           color="text.secondary"
           sx={{ 
             mt: 1,
-            fontFamily: '"Inter", sans-serif',
+            fontFamily: '"Poppins", "Roboto", sans-serif',
             fontWeight: 400,
+            fontSize: { xs: '0.875rem', sm: '0.95rem' },
+            letterSpacing: '0.3px',
+            px: { xs: 1, sm: 0 },
           }}
         >
           {subtitle}

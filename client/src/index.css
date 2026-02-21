@@ -10,6 +10,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 code {
@@ -19,4 +20,53 @@ code {
 
 #root {
   min-height: 100vh;
+}
+
+/* Responsividade para imagens */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Ajustes para dispositivos móveis */
+@media (max-width: 600px) {
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  h3 {
+    font-size: 1.25rem !important;
+  }
+  
+  h4 {
+    font-size: 1.125rem !important;
+  }
+  
+  h5 {
+    font-size: 1rem !important;
+  }
+  
+  h6 {
+    font-size: 0.875rem !important;
+  }
+}
+
+/* Ajustes para tablets */
+@media (min-width: 601px) and (max-width: 960px) {
+  body {
+    font-size: 15px;
+  }
+}
+
+/* Scroll suave */
+html {
+  scroll-behavior: smooth;
 }

@@ -1,16 +1,16 @@
 nome,matricula,dataNascimento,turma,responsavel_nome,responsavel_telefone,responsavel_email
-João Silva Santos,2026001,2010-05-15,1º Ano A,Maria Silva Santos,(11) 98765-4321,maria.silva@email.com
-Ana Paula Costa,2026002,2011-08-20,1º Ano A,Carlos Costa,(11) 91234-5678,carlos.costa@email.com
-Pedro Henrique Lima,2026003,2010-03-10,1º Ano A,Lucia Lima,(11) 99876-5432,lucia.lima@email.com
-Mariana Oliveira,2026004,2010-11-25,1º Ano A,Roberto Oliveira,(11) 98888-9999,roberto.oliveira@email.com
-Lucas Ferreira,2026005,2011-01-30,1º Ano A,Fernanda Ferreira,(11) 97777-8888,fernanda.ferreira@email.com
-Juliana Santos,2026006,2009-07-12,2º Ano A,Antonio Santos,(11) 96666-7777,antonio.santos@email.com
-Rafael Souza,2026007,2009-09-18,2º Ano A,Patricia Souza,(11) 95555-6666,patricia.souza@email.com
-Beatriz Almeida,2026008,2009-12-05,2º Ano A,Marcos Almeida,(11) 94444-5555,marcos.almeida@email.com
-Gabriel Rodrigues,2026009,2008-04-22,3º Ano A,Sandra Rodrigues,(11) 93333-4444,sandra.rodrigues@email.com
-Carolina Pereira,2026010,2008-06-08,3º Ano A,Paulo Pereira,(11) 92222-3333,paulo.pereira@email.com
-Felipe Martins,2026011,2008-10-14,3º Ano A,Claudia Martins,(11) 91111-2222,claudia.martins@email.com
-Amanda Ribeiro,2026012,2007-02-28,4º Ano A,Jorge Ribeiro,(11) 90000-1111,jorge.ribeiro@email.com
-Thiago Carvalho,2026013,2007-05-17,4º Ano A,Renata Carvalho,(11) 99999-0000,renata.carvalho@email.com
-Camila Araújo,2026014,2007-08-03,4º Ano A,Sergio Araújo,(11) 98888-1111,sergio.araujo@email.com
-Bruno Fernandes,2026015,2006-11-19,5º Ano A,Helena Fernandes,(11) 97777-2222,helena.fernandes@email.com
+João Silva Santos,2026001,15/05/2010,1º Ano A,Maria Silva Santos,(11) 98765-4321,maria.silva@email.com
+Ana Paula Costa,2026002,20/08/2011,1º Ano A,Carlos Costa,"(11) 91234-5678, (11) 98888-7777",carlos.costa@email.com
+Pedro Henrique Lima,2026003,10/03/2010,1º Ano A,Lucia Lima,(11) 99876-5432,lucia.lima@email.com
+Mariana Oliveira,2026004,25/11/2010,1º Ano A,Roberto Oliveira,(11) 98888-9999,roberto.oliveira@email.com
+Lucas Ferreira,2026005,30/01/2011,1º Ano A,Fernanda Ferreira,(11) 97777-8888,fernanda.ferreira@email.com
+Juliana Santos,2026006,12/07/2009,2º Ano A,Antonio Santos,(11) 96666-7777,antonio.santos@email.com
+Rafael Souza,2026007,18/09/2009,2º Ano A,Patricia Souza,(11) 95555-6666,patricia.souza@email.com
+Beatriz Almeida,2026008,05/12/2009,2º Ano A,Marcos Almeida,(11) 94444-5555,marcos.almeida@email.com
+Gabriel Rodrigues,2026009,22/04/2008,3º Ano A,Sandra Rodrigues,(11) 93333-4444,sandra.rodrigues@email.com
+Carolina Pereira,2026010,08/06/2008,3º Ano A,Paulo Pereira,(11) 92222-3333,paulo.pereira@email.com
+Felipe Martins,2026011,14/10/2008,3º Ano A,Claudia Martins,(11) 91111-2222,claudia.martins@email.com
+Amanda Ribeiro,2026012,28/02/2007,4º Ano A,Jorge Ribeiro,(11) 90000-1111,jorge.ribeiro@email.com
+Thiago Carvalho,2026013,17/05/2007,4º Ano A,Renata Carvalho,(11) 99999-0000,renata.carvalho@email.com
+Camila Araújo,2026014,03/08/2007,4º Ano A,Sergio Araújo,(11) 98888-1111,sergio.araujo@email.com
+Bruno Fernandes,2026015,19/11/2006,5º Ano A,Helena Fernandes,(11) 97777-2222,helena.fernandes@email.com

@@ -1,0 +1,68 @@
+appId: com.sgecentenario.app
+productName: SGE CENTENÁRIO
+copyright: Copyright © 2026 SGE CENTENÁRIO
+
+directories:
+  buildResources: build
+  output: dist
+
+files:
+  - electron/**/*
+  - client/build/**/*
+  - server/**/*
+  - docs/LOGO ESCOLA.jpg
+  - package.json
+  - "!**/{.git,.gitignore,.gitattributes,README.md,docs/**/*.md}"
+  - "!client/src"
+  - "!client/public"
+  - "!client/node_modules"
+  - "!server/node_modules"
+  - "!{.env,.env.*}"
+
+extraResources:
+  - from: server
+    to: server
+    filter:
+      - "**/*"
+      - "!node_modules/**/*"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+  publisherName: SGE CENTENÁRIO
+  fileAssociations:
+    - ext: sge
+      name: SGE File
+      description: Arquivo SGE CENTENÁRIO
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: SGE CENTENÁRIO
+  installerIcon: build/installerIcon.ico
+  uninstallerIcon: build/installerIcon.ico
+  deleteAppDataOnUninstall: false
+  allowElevation: true
+  perMachine: false
+  menuCategory: true
+
+publish:
+  provider: github
+  owner: RODRIGOGRILLOMOREIRA
+  repo: ANALISADOR-DE-NOTAS-E-HABILIDADES
+  private: true
+  releaseType: release
+
+artifactName: ${productName}-Setup-${version}.${ext}
+
+compression: maximum
+
+asar: true
+asarUnpack:
+  - "**/*.node"
+  - "server/**/*"

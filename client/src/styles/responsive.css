@@ -1,0 +1,181 @@
+/* Estilos de responsividade global */
+
+/* Mobile First - Dispositivos móveis pequenos (320px - 480px) */
+@media (max-width: 480px) {
+  /* Ajustes de botões */
+  .MuiButton-root {
+    font-size: 0.8125rem !important;
+    padding: 6px 12px !important;
+  }
+
+  .MuiButton-startIcon {
+    margin-right: 4px !important;
+  }
+
+  /* Ajustes de tabela */
+  .MuiTableCell-root {
+    padding: 8px 4px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .MuiTableCell-head {
+    font-size: 0.8125rem !important;
+  }
+
+  /* Ajustes de cards */
+  .MuiCard-root {
+    margin-bottom: 12px !important;
+  }
+
+  .MuiCardContent-root {
+    padding: 12px !important;
+  }
+
+  /* Ajustes de chips */
+  .MuiChip-root {
+    font-size: 0.6875rem !important;
+    height: 24px !important;
+  }
+
+  /* Ajustes de ícones */
+  .MuiIconButton-root {
+    padding: 6px !important;
+  }
+
+  /* Ajustes de dialog */
+  .MuiDialog-paper {
+    margin: 16px !important;
+    width: calc(100% - 32px) !important;
+  }
+
+  /* Ajustes de textfield */
+  .MuiTextField-root {
+    margin-bottom: 12px !important;
+  }
+
+  .MuiInputBase-root {
+    font-size: 0.875rem !important;
+  }
+}
+
+/* Dispositivos móveis médios (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .MuiButton-root {
+    font-size: 0.875rem !important;
+  }
+
+  .MuiTableCell-root {
+    padding: 12px 8px !important;
+    font-size: 0.8125rem !important;
+  }
+
+  .MuiCard-root {
+    margin-bottom: 16px !important;
+  }
+}
+
+/* Tablets (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .MuiContainer-root {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .MuiTableCell-root {
+    font-size: 0.875rem !important;
+  }
+}
+
+/* Ajustes gerais para touch devices */
+@media (hover: none) and (pointer: coarse) {
+  /* Aumentar área de toque */
+  .MuiIconButton-root {
+    padding: 10px !important;
+  }
+
+  .MuiButton-root {
+    min-height: 44px !important;
+  }
+
+  /* Melhorar visibilidade de links e botões */
+  .MuiLink-root,
+  .MuiButton-root {
+    -webkit-tap-highlight-color: rgba(0, 188, 212, 0.2);
+  }
+}
+
+/* Ocultar scrollbar horizontal em mobile mantendo funcionalidade */
+@media (max-width: 768px) {
+  .MuiTableContainer-root {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Stack buttons verticalmente em mobile */
+  .MuiDialogActions-root {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .MuiDialogActions-root > :not(:first-of-type) {
+    margin-left: 0 !important;
+  }
+
+  /* Ajustar grid para mobile */
+  .MuiGrid-item {
+    padding: 8px !important;
+  }
+}
+
+/* Landscape mode em dispositivos móveis */
+@media (max-height: 500px) and (orientation: landscape) {
+  .MuiDialog-paper {
+    max-height: 90vh !important;
+  }
+
+  .MuiDialogContent-root {
+    padding: 12px !important;
+  }
+}
+
+/* Impressão */
+@media print {
+  .MuiDrawer-root,
+  .MuiAppBar-root,
+  .MuiButton-root,
+  .MuiIconButton-root {
+    display: none !important;
+  }
+
+  .MuiContainer-root {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .MuiTableContainer-root {
+    box-shadow: none !important;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .MuiTypography-root {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Dark mode specific responsiveness */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0A0E14;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

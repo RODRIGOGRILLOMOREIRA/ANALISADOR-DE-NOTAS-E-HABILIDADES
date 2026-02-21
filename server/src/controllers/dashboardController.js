@@ -387,3 +387,32 @@ exports.getDistribuicaoNiveisHabilidades = async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar distribuição de níveis', error: error.message });
   }
 };
+
+// @desc    Contagem de alunos (total da escola ou por turma)
+// @route   GET /api/dashboard/contagem-alunos
+exports.getContagemAlunos = async (req, res) => {
+  try {
+    const { turma } = req.query;
+    
+    console.log('📊 Buscando contagem de alunos:', { turma });
+    
+    const filter = {};
+    if (turma) {
+      filter.turma = turma;
+    }
+    
+    const totalAlunos = await Aluno.countDocuments(filter);
+    
+    const contexto = turma ? 'da turma' : 'da escola';
+    console.log(`✅ Total de alunos ${contexto}: ${totalAlunos}`);
+    
+    res.json({
+      totalAlunos,
+      turma: turma || null,
+      contexto
+    });
+  } catch (error) {
+    console.error('❌ Erro ao buscar contagem de alunos:', error);
+    res.status(500).json({ message: 'Erro ao buscar contagem de alunos', error: error.message });
+  }
+};

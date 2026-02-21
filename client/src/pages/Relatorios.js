@@ -35,6 +35,8 @@ import {
   Warning,
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
+import PageHeader from '../components/PageHeader';
+import { Summarize } from '@mui/icons-material';
 import {
   turmaService,
   alunoService,
@@ -225,11 +227,11 @@ const Relatorios = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Zoom in={true} timeout={400}>
-        <Typography variant="h4" gutterBottom fontWeight="600" sx={{ mb: 3 }}>
-          📊 Relatórios e Análises
-        </Typography>
-      </Zoom>
+      <PageHeader 
+        title="Relatórios"
+        subtitle="Gere relatórios e análises sobre o desempenho dos alunos"
+        icon={Summarize}
+      />
 
       {/* Filtros */}
       <Fade in={true} timeout={600}>

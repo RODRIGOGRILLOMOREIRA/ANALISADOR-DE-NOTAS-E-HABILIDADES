@@ -47,6 +47,7 @@ import {
 } from '@mui/icons-material';
 import { habilidadeService, disciplinaService, turmaService, alunoService } from '../services';
 import { toast } from 'react-toastify';
+import PageHeader from '../components/PageHeader';
 
 const NIVEIS_DESENVOLVIMENTO = [
   { value: 'nao-desenvolvido', label: 'Não Desenvolvido', color: 'error', icon: Cancel },
@@ -366,7 +367,7 @@ const Habilidades = () => {
                       {nivel.label}
                     </Typography>
                   </Box>
-                  <Typography variant="h4">{count}</Typography>
+                  <Typography variant="h4" sx={{ color: '#4169E1', fontWeight: 600 }}>{count}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     {percentage}% do total
                   </Typography>
@@ -381,7 +382,7 @@ const Habilidades = () => {
               <Typography variant="h6" gutterBottom>
                 Total de Acompanhamentos
               </Typography>
-              <Typography variant="h3" color="primary">
+              <Typography variant="h3" sx={{ color: '#4169E1', fontWeight: 600 }}>
                 {stats.total}
               </Typography>
             </CardContent>
@@ -393,11 +394,14 @@ const Habilidades = () => {
 
   return (
     <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
+      <PageHeader 
+        title="Habilidades"
+        subtitle="Gerencie as habilidades e competências desenvolvidas pelos alunos"
+        icon={Assessment}
+      />
+      
       <Box sx={{ mb: 3 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h4" component="h1">
-            Habilidades
-          </Typography>
+        <Box display="flex" justifyContent="flex-end" alignItems="center">
           <Box>
             <Button
               variant="outlined"
@@ -559,7 +563,7 @@ const Habilidades = () => {
                           {nivel.label}
                         </Typography>
                       </Box>
-                      <Typography variant="h4">{count}</Typography>
+                      <Typography variant="h4" sx={{ color: '#4169E1', fontWeight: 600 }}>{count}</Typography>
                       <Typography variant="body2" color="text.secondary">
                         {percentage}% do total
                       </Typography>

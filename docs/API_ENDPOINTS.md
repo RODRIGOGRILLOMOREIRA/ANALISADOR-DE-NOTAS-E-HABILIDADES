@@ -666,7 +666,7 @@ Response:
 - matricula_aluno OU aluno_nome
 - codigo_disciplina OU disciplina_nome
 - turma_nome
-- data (formato: AAAA-MM-DD)
+- data (formato: dd/mm/aaaa)
 
 # Campos Opcionais:
 - professor_nome, status (padrão: "presente"), periodo, observacao

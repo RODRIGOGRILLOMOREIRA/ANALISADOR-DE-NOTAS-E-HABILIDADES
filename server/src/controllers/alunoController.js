@@ -122,7 +122,7 @@ exports.gerarTemplatePorTurma = async (req, res) => {
       {
         nome: 'João Silva',
         matricula: '',
-        dataNascimento: '2010-05-15',
+        dataNascimento: '15/05/2010',
         turma: turma.nome,
         responsavel_nome: 'Maria Silva',
         responsavel_telefone: '(11) 98765-4321',
@@ -131,7 +131,7 @@ exports.gerarTemplatePorTurma = async (req, res) => {
       {
         nome: 'Ana Santos',
         matricula: '',
-        dataNascimento: '2011-08-20',
+        dataNascimento: '20/08/2011',
         turma: turma.nome,
         responsavel_nome: 'Carlos Santos',
         responsavel_telefone: '(11) 91234-5678',
@@ -161,7 +161,7 @@ exports.gerarTemplatePorTurma = async (req, res) => {
       instrucoes: {
         turma: `Campo turma já está preenchido com "${turma.nome}"`,
         matricula: 'Matrícula será gerada automaticamente se deixada em branco',
-        dataNascimento: 'Formato: AAAA-MM-DD (ex: 2010-05-15)',
+        dataNascimento: 'Formato: dd/mm/aaaa (ex: 15/05/2010)',
         responsavel: 'Preencha todos os dados do responsável',
         dica: 'As 2 primeiras linhas são exemplos. Você pode apagá-las e preencher seus dados'
       }

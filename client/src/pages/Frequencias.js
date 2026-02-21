@@ -44,9 +44,13 @@ import {
   Warning,
   Upload,
   Download,
+  ArrowForward,
+  ArrowBack,
+ Today,
 } from '@mui/icons-material';
 import { frequenciaService, turmaService, disciplinaService, alunoService } from '../services';
 import { toast } from 'react-toastify';
+import PageHeader from '../components/PageHeader';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
@@ -79,6 +83,7 @@ const Frequencias = () => {
   const [presencas, setPresencas] = useState({});
   const [loading, setLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const [chamadaIniciada, setChamadaIniciada] = useState(false); // Controla se iniciou o lançamento
 
   // Dialog de justificativa
   const [dialogJustificativa, setDialogJustificativa] = useState(false);
@@ -99,6 +104,7 @@ const Frequencias = () => {
     total: 0,
     presentes: 0,
     faltas: 0,
+    justificadas: 0,
     percentual: 100,
   });
 
@@ -108,14 +114,21 @@ const Frequencias = () => {
   }, []);
 
   useEffect(() => {
-    if (filtros.turma && filtros.disciplina && filtros.data) {
-      loadAlunos();
-      loadFrequencia();
-    }
+    const carregarDados = async () => {
+      if (filtros.turma && filtros.disciplina && filtros.data) {
+        // IMPORTANTE: Carregar alunos PRIMEIRO, depois frequência
+        await loadAlunos();
+        await loadFrequencia();
+      }
+    };
+    carregarDados();
   }, [filtros.turma, filtros.disciplina, filtros.data]);
 
   useEffect(() => {
-    calcularStats();
+    // Só calcular stats se temos alunos
+    if (alunos.length > 0) {
+      calcularStats();
+    }
   }, [presencas, alunos]);
 
   const loadTurmas = async () => {
@@ -151,70 +164,214 @@ const Frequencias = () => {
   const loadFrequencia = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Carregando frequência para:', { 
+        turma: filtros.turma, 
+        data: filtros.data, 
+        disciplina: filtros.disciplina,
+        totalAlunos: alunos.length
+      });
+      
       const response = await frequenciaService.getFrequenciaTurmaDia(
         filtros.turma,
         filtros.data,
         { disciplina: filtros.disciplina }
       );
       
-      // Converter para objeto { alunoId: status }
-      const presencasCarregadas = {};
-      response.frequencias.forEach(freq => {
-        presencasCarregadas[freq.aluno._id] = freq.status;
+      console.log('✅ Resposta do servidor:', {
+        totalFrequencias: response.frequencias?.length || 0,
+        frequencias: response.frequencias
       });
       
-      setPresencas(presencasCarregadas);
-      setFrequencias(response.frequencias.reduce((acc, f) => {
-        acc[f.aluno._id] = f;
-        return acc;
-      }, {}));
+      // Se existem frequências salvas, carregar os dados salvos
+      if (response.frequencias && response.frequencias.length > 0) {
+        const presencasCarregadas = {};
+        const frequenciasObj = {};
+        
+        response.frequencias.forEach(freq => {
+          const alunoId = freq.aluno._id || freq.aluno;
+          presencasCarregadas[alunoId] = freq.status;
+          frequenciasObj[alunoId] = freq;
+        });
+        
+        console.log('✅ Frequências salvas carregadas:', {
+          total: response.frequencias.length,
+          presente: Object.values(presencasCarregadas).filter(p => p === 'presente').length,
+          falta: Object.values(presencasCarregadas).filter(p => p === 'falta').length,
+          justificada: Object.values(presencasCarregadas).filter(p => p === 'falta-justificada').length
+        });
+        
+        setPresencas(presencasCarregadas);
+        setFrequencias(frequenciasObj);
+        setChamadaIniciada(true); // Marca como iniciada pois tem dados salvos
+      } else {
+        // Sem frequências salvas - limpar estado
+        console.log('📄 Nenhuma frequência salva para esta data');
+        setPresencas({});
+        setFrequencias({});
+        setChamadaIniciada(false); // Não foi iniciada
+      }
+      
     } catch (error) {
-      console.error('Erro ao carregar frequência:', error);
-      // Se não houver frequência registrada, inicializar todos como presente
-      const presencasInicial = {};
-      alunos.forEach(aluno => {
-        presencasInicial[aluno._id] = 'presente';
-      });
-      setPresencas(presencasInicial);
+      console.error('❌ Erro ao carregar frequência:', error);
+      // Em caso de erro, limpar estado
+      setPresencas({});
+      setFrequencias({});
+      setChamadaIniciada(false);
     } finally {
       setLoading(false);
     }
   };
 
   const calcularStats = () => {
+    // Se a chamada não foi iniciada, não calcular stats
+    if (!chamadaIniciada || alunos.length === 0) {
+      console.log('⚠️ Aguardando início da chamada ou carregamento de alunos...');
+      setStats({
+        total: alunos.length,
+        presentes: 0,
+        faltas: 0,
+        justificadas: 0,
+        percentual: 0
+      });
+      return;
+    }
+    
+    console.log('🔢 Calculando stats:', {
+      totalAlunos: alunos.length,
+      totalPresencas: Object.keys(presencas).length,
+      detalhes: Object.values(presencas).reduce((acc, status) => {
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {})
+    });
+    
     const total = alunos.length;
     const presentes = Object.values(presencas).filter(p => p === 'presente').length;
-    const faltas = Object.values(presencas).filter(p => p === 'falta' || p === 'falta-justificada').length;
-    const percentual = total > 0 ? ((presentes / total) * 100).toFixed(1) : 100;
+    const faltas = Object.values(presencas).filter(p => p === 'falta').length;
+    const justificadas = Object.values(presencas).filter(p => p === 'falta-justificada').length;
+    const percentual = total > 0 ? ((presentes / total) * 100).toFixed(1) : 0;
 
-    setStats({ total, presentes, faltas, percentual });
+    console.log('✅ Stats atualizados:', { total, presentes, faltas, justificadas, percentual: percentual + '%' });
+    setStats({ total, presentes, faltas, justificadas, percentual });
   };
 
-  const handlePresencaChange = (alunoId, status) => {
+  const handleIniciarChamada = () => {
+    // Inicializar todos os alunos como 'presente'
+    const presencasIniciais = {};
+    alunos.forEach(aluno => {
+      presencasIniciais[aluno._id] = 'presente';
+    });
+    
+    console.log('🆕 Iniciando nova chamada:', {
+      totalAlunos: alunos.length,
+      data: filtros.data,
+      disciplina: filtros.disciplina
+    });
+    
+    setPresencas(presencasIniciais);
+    setChamadaIniciada(true);
+    toast.info('Chamada iniciada! Todos os alunos marcados como presentes. Faça os ajustes necessários.');
+  };
+
+  const handlePresencaChange = async (alunoId, status) => {
+    // Atualizar localmente primeiro (feedback imediato)
     setPresencas(prev => ({
       ...prev,
       [alunoId]: status
     }));
+    
+    // Não atualizar no servidor em tempo real - apenas ao clicar em "Salvar Chamada"
+    // Isso evita resetar a chamada durante a edição
+    console.log(`✏️ Presença alterada localmente:`, {
+      alunoId,
+      novoStatus: status,
+      observacao: 'Será salvo ao clicar em "Salvar Chamada"'
+    });
   };
 
   const handleSalvarChamada = async () => {
     try {
       setSalvando(true);
       
+      if (!filtros.turma || !filtros.disciplina || !filtros.data) {
+        toast.error('Selecione turma, disciplina e data antes de salvar');
+        setSalvando(false);
+        return;
+      }
+      
+      if (Object.keys(presencas).length === 0) {
+        toast.error('Marque a presença dos alunos antes de salvar');
+        setSalvando(false);
+        return;
+      }
+      
       const turma = turmas.find(t => t._id === filtros.turma);
       
-      await frequenciaService.registrarChamadaTurma(filtros.turma, {
+      console.log('📋 Turma selecionada:', turma);
+      console.log('📚 Disciplinas da turma:', turma?.disciplinas);
+      
+      // Buscar professor da disciplina na turma
+      let professor = null;
+      if (turma && turma.disciplinas && Array.isArray(turma.disciplinas)) {
+        const discTurma = turma.disciplinas.find(d => {
+          const discId = d.disciplina?._id || d.disciplina;
+          return discId === filtros.disciplina || String(discId) === String(filtros.disciplina);
+        });
+        
+        if (discTurma) {
+          professor = discTurma.professor?._id || discTurma.professor || null;
+          console.log('👨‍🏫 Professor encontrado:', professor);
+        } else {
+          console.warn('⚠️ Disciplina não encontrada na turma');
+        }
+      }
+      
+      const payload = {
         data: filtros.data,
         disciplina: filtros.disciplina,
-        professor: turma?.disciplinas?.find(d => d.disciplina === filtros.disciplina)?.professor,
+        professor: professor,
         periodo: turma?.turno || 'matutino',
         presencas
+      };
+      
+      console.log('📝 Salvando frequência:', {
+        turmaId: filtros.turma,
+        turmaNome: turma?.nome,
+        data: filtros.data,
+        disciplinaId: filtros.disciplina,
+        professorId: professor,
+        totalAlunos: Object.keys(presencas).length,
+        payload
       });
       
-      toast.success('Frequência salva com sucesso!');
-      loadFrequencia();
+      const response = await frequenciaService.registrarChamadaTurma(filtros.turma, payload);
+      
+      console.log('✅ Resposta do servidor:', response);
+      
+      // Atualizar frequências salvas no estado
+      const frequenciasObj = {};
+      response.frequencias?.forEach(freq => {
+        const alunoId = freq.aluno._id || freq.aluno;
+        frequenciasObj[alunoId] = freq;
+      });
+      setFrequencias(frequenciasObj);
+      
+      // Forçar recálculo imediato dos stats com os dados salvos
+      const total = alunos.length;
+      const presentes = Object.values(presencas).filter(p => p === 'presente').length;
+      const faltas = Object.values(presencas).filter(p => p === 'falta').length;
+      const justificadas = Object.values(presencas).filter(p => p === 'falta-justificada').length;
+      const percentual = total > 0 ? ((presentes / total) * 100).toFixed(1) : 100;
+      
+      setStats({ total, presentes, faltas, justificadas, percentual });
+      
+      console.log('✅ Stats atualizados após salvamento:', { total, presentes, faltas, justificadas, percentual });
+      
+      toast.success(`✅ Frequência salva com sucesso! ${response.total || 0} registro(s) processado(s).`);
     } catch (error) {
-      toast.error('Erro ao salvar frequência: ' + (error.response?.data?.message || error.message));
+      console.error('❌ Erro ao salvar frequência:', error);
+      console.error('Detalhes do erro:', error.response?.data);
+      toast.error('❌ Erro ao salvar: ' + (error.response?.data?.message || error.message));
     } finally {
       setSalvando(false);
     }
@@ -224,26 +381,38 @@ const Frequencias = () => {
     try {
       if (!justificativa.trim()) {
         toast.error('Digite a justificativa');
-        return;      }
-      
-      const freq = frequencias[alunoJustificar];
-      if (freq) {
-        await frequenciaService.justificarFalta(freq._id, {
-          descricao: justificativa
-        });
+        return;
       }
       
+      // Atualizar estado local para marcar como falta-justificada
       setPresencas(prev => ({
         ...prev,
         [alunoJustificar]: 'falta-justificada'
       }));
       
-      toast.success('Falta justificada!');
+      // Se já existe frequência salva, atualizar no servidor
+      const freq = frequencias[alunoJustificar];
+      if (freq) {
+        try {
+          await frequenciaService.justificarFalta(freq._id, {
+            descricao: justificativa
+          });
+          console.log('✅ Justificativa salva no servidor');
+        } catch (error) {
+          console.warn('⚠️ Erro ao salvar justificativa no servidor:', error);
+          // Continua mesmo se falhar - será salva quando clicar em "Salvar Chamada"
+        }
+      }
+      
+      toast.success('Falta justificada! Lembre-se de salvar a chamada.');
       setDialogJustificativa(false);
       setJustificativa('');
       setAlunoJustificar(null);
-      loadFrequencia();
+      
+      // NÃO recarregar - mantém o estado atual da chamada
+      // loadFrequencia(); ← REMOVIDO
     } catch (error) {
+      console.error('Erro ao justificar falta:', error);
       toast.error('Erro ao justificar falta');
     }
   };
@@ -486,16 +655,14 @@ const Frequencias = () => {
 
   return (
     <Container maxWidth="xl">
+      <PageHeader 
+        title="Frequências"
+        subtitle="Registre e acompanhe a presença dos alunos diariamente"
+        icon={EventNote}
+      />
+      
       <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography variant="h4" component="h1" gutterBottom>
-              Controle de Frequência
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Registre a presença dos alunos diariamente
-            </Typography>
-          </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <Button
             variant="outlined"
             color="primary"
@@ -551,52 +718,103 @@ const Frequencias = () => {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              type="date"
-              label="Data"
-              value={filtros.data}
-              onChange={(e) => setFiltros({ ...filtros, data: e.target.value })}
-              InputLabelProps={{ shrink: true }}
-            />
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Tooltip title="Dia Anterior">
+                <IconButton 
+                  size="small" 
+                  onClick={() => {
+                    const dataAtual = new Date(filtros.data + 'T12:00:00');
+                    dataAtual.setDate(dataAtual.getDate() - 1);
+                    setFiltros({ ...filtros, data: dataAtual.toISOString().split('T')[0] });
+                  }}
+                >
+                  <ArrowBack />
+                </IconButton>
+              </Tooltip>
+              <TextField
+                fullWidth
+                type="date"
+                label="Data da Chamada"
+                value={filtros.data}
+                onChange={(e) => setFiltros({ ...filtros, data: e.target.value })}
+                InputLabelProps={{ shrink: true }}
+                helperText="Você pode lançar frequências retroativas"
+              />
+              <Tooltip title="Próximo Dia">
+                <IconButton 
+                  size="small"
+                  onClick={() => {
+                    const dataAtual = new Date(filtros.data + 'T12:00:00');
+                    dataAtual.setDate(dataAtual.getDate() + 1);
+                    setFiltros({ ...filtros, data: dataAtual.toISOString().split('T')[0] });
+                  }}
+                >
+                  <ArrowForward />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Hoje">
+                <IconButton 
+                  size="small" 
+                  color="primary"
+                  onClick={() => setFiltros({ ...filtros, data: new Date().toISOString().split('T')[0] })}
+                >
+                  <Today />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Grid>
         </Grid>
+        
+        {filtros.data !== new Date().toISOString().split('T')[0] && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Você está lançando frequência para o dia {new Date(filtros.data + 'T12:00:00').toLocaleDateString('pt-BR')}
+          </Alert>
+        )}
       </Paper>
 
       {/* Estatísticas */}
       {filtros.turma && filtros.disciplina && alunos.length > 0 && (
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2.4}>
             <Card sx={{ bgcolor: 'primary.main', color: 'white' }}>
               <CardContent>
-                <Typography variant="h3" align="center">{stats.total}</Typography>
+                <Typography variant="h3" align="center" sx={{ color: '#4169E1', fontWeight: 600 }}>{stats.total}</Typography>
                 <Typography variant="body2" align="center">Total de Alunos</Typography>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2.4}>
             <Card sx={{ bgcolor: 'success.main', color: 'white' }}>
               <CardContent>
-                <Typography variant="h3" align="center">{stats.presentes}</Typography>
+                <Typography variant="h3" align="center" sx={{ color: '#4169E1', fontWeight: 600 }}>{stats.presentes}</Typography>
                 <Typography variant="body2" align="center">Presentes</Typography>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2.4}>
             <Card sx={{ bgcolor: 'error.main', color: 'white' }}>
               <CardContent>
-                <Typography variant="h3" align="center">{stats.faltas}</Typography>
+                <Typography variant="h3" align="center" sx={{ color: '#4169E1', fontWeight: 600 }}>{stats.faltas}</Typography>
                 <Typography variant="body2" align="center">Faltas</Typography>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2.4}>
+            <Card sx={{ bgcolor: 'warning.main', color: 'white' }}>
+              <CardContent>
+                <Typography variant="h3" align="center" sx={{ color: '#4169E1', fontWeight: 600 }}>{stats.justificadas || 0}</Typography>
+                <Typography variant="body2" align="center">Justificadas</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={2.4}>
             <Card sx={{ bgcolor: statusGeral.color + '.main', color: 'white' }}>
               <CardContent>
-                <Typography variant="h3" align="center">{stats.percentual}%</Typography>
+                <Typography variant="h3" align="center" sx={{ color: '#4169E1', fontWeight: 600 }}>{stats.percentual}%</Typography>
                 <Typography variant="body2" align="center">{statusGeral.label}</Typography>
               </CardContent>
             </Card>
@@ -609,11 +827,52 @@ const Frequencias = () => {
         <>
           {loading && <LinearProgress sx={{ mb: 2 }} />}
           
+          {/* Se não tem frequência salva E não iniciou chamada, mostrar botão para iniciar */}
+          {!chamadaIniciada && Object.keys(frequencias).length === 0 && (
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="h6" gutterBottom>
+                Chamada não iniciada para {new Date(filtros.data + 'T12:00:00').toLocaleDateString('pt-BR')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Clique no botão abaixo para iniciar o lançamento de frequência desta data.
+                Todos os alunos serão marcados como presentes inicialmente.
+              </Typography>
+              <Button
+                variant="contained"
+                size="large"
+                color="primary"
+                startIcon={<EventNote />}
+                onClick={handleIniciarChamada}
+              >
+                Iniciar Chamada
+              </Button>
+            </Paper>
+          )}
+          
+          {/* Tabela visível apenas se chamada foi iniciada OU há dados salvos */}
+          {chamadaIniciada && (
           <Paper>
             <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6">
-                Lista de Presença - {new Date(filtros.data).toLocaleDateString('pt-BR')}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="h6">
+                  Lista de Presença - {new Date(filtros.data + 'T12:00:00').toLocaleDateString('pt-BR')}
+                </Typography>
+                {Object.keys(frequencias).length > 0 ? (
+                  <Chip 
+                    label="Salvo" 
+                    color="success" 
+                    size="small" 
+                    icon={<CheckCircle />}
+                  />
+                ) : (
+                  <Chip 
+                    label="Não salvo" 
+                    color="warning" 
+                    size="small" 
+                    variant="outlined"
+                  />
+                )}
+              </Box>
               <Box>
                 <Button
                   startIcon={<Refresh />}
@@ -708,6 +967,7 @@ const Frequencias = () => {
               </Table>
             </TableContainer>
           </Paper>
+          )}
         </>
       )}
 

@@ -20,10 +20,10 @@ Arquivo de exemplo com 15 alunos pré-configurados.
 **Colunas:**
 - `nome` - Nome completo do aluno
 - `matricula` - Número de matrícula único (ex: "2026001")
-- `dataNascimento` - Data no formato AAAA-MM-DD (ex: "2010-05-15")
+- `dataNascimento` - Data no formato dd/mm/aaaa (ex: "15/05/2010")
 - `turma` - Nome exato da turma cadastrada (ex: "1º Ano A")
 - `responsavel_nome` - Nome completo do responsável
-- `responsavel_telefone` - Telefone de contato
+- `responsavel_telefone` - Telefone de contato (pode incluir múltiplos telefones separados por vírgula)
 - `responsavel_email` - Email do responsável
 
 ### 3. `avaliacoes_exemplo.csv` ✨ NOVO
@@ -42,7 +42,7 @@ Arquivo de exemplo com avaliações (notas) de alunos.
 - `tipo_avaliacao` - prova, trabalho, participacao, simulado, atividade, seminario, projeto, pesquisa, outro
 - `descricao` - Descrição da avaliação
 - `peso` - Peso da nota (padrão: 1)
-- `data_avaliacao` - Data no formato AAAA-MM-DD
+- `data_avaliacao` - Data no formato dd/mm/aaaa (ex: 15/03/2026)
 - **`habilidades_codigos`** 🎯 - Códigos das habilidades BNCC separados por vírgula ou ponto e vírgula (Ex: EF06MA01,EF06MA02)
 - `observacoes` - Observações sobre a avaliação
 
@@ -62,7 +62,7 @@ Arquivo de exemplo com registros de frequência (presença/falta) dos alunos.
 - `matricula_aluno` ou `aluno_nome` - Matrícula ou nome do aluno
 - `codigo_disciplina` ou `disciplina_nome` - Código ou nome da disciplina
 - `turma_nome` - Nome da turma
-- `data` - Data da aula no formato AAAA-MM-DD
+- `data` - Data da aula no formato dd/mm/aaaa (ex: 20/03/2026)
 
 **Colunas Opcionais:**
 - `status` - presente, falta, falta-justificada, atestado (padrão: presente)
@@ -146,7 +146,7 @@ O sistema oferece a opção de baixar templates vazios diretamente:
 ## ⚠️ Erros Comuns
 
 ### Geral:
-- **Formato de data inválido:** Use sempre AAAA-MM-DD (ex: 2026-03-15)
+- **Formato de data inválido:** Use sempre dd/mm/aaaa (ex: 15/03/2026)
 - **CSV mal formatado:** Certifique-se de usar vírgula como separador
 
 ### Turmas:
@@ -165,7 +165,7 @@ O sistema oferece a opção de baixar templates vazios diretamente:
 ### Frequências:
 - **Status inválido:** Use: presente, falta, falta-justificada, atestado OU use códigos P, F, FJ, A
 - **Código de status inválido:** Use apenas P, F, FJ ou A na coluna status_codigo
-- **Data inválida:** Use o formato AAAA-MM-DD
+- **Data inválida:** Use o formato dd/mm/aaaa (ex: 15/03/2026)
 - **Registros duplicados:** Para a mesma data/aluno/disciplina, o registro existente será atualizado
 
 ## 📊 Suporte para Excel

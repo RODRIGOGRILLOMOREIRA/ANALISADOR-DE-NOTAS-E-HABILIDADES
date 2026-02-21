@@ -22,7 +22,8 @@ const frequenciaSchema = new mongoose.Schema({
   professor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Professor',
-    required: true
+    required: false,
+    default: null
   },
   data: {
     type: Date,
@@ -61,14 +62,24 @@ const frequenciaSchema = new mongoose.Schema({
     required: true,
     min: 1,
     max: 12,
-    index: true
+    index: true,
+    default: function() {
+      return this.data ? new Date(this.data).getMonth() + 1 : new Date().getMonth() + 1;
+    }
   },
   trimestre: {
     type: Number,
     required: true,
     min: 1,
     max: 4,
-    index: true
+    index: true,
+    default: function() {
+      const mes = this.data ? new Date(this.data).getMonth() + 1 : new Date().getMonth() + 1;
+      if (mes <= 3) return 1;
+      else if (mes <= 6) return 2;
+      else if (mes <= 9) return 3;
+      else return 4;
+    }
   },
   registradoPor: {
     type: mongoose.Schema.Types.ObjectId,

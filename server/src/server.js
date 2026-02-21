@@ -1,10 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 const connectDB = require('./config/database');
 
-// Carregar variáveis de ambiente
-dotenv.config();
+// Carregar variáveis de ambiente da raiz do projeto
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 // Conectar ao MongoDB
 connectDB();

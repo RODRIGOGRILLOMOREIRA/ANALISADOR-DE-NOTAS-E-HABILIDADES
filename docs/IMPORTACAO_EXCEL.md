@@ -191,7 +191,7 @@ Arquivo: `template_alunos.xlsx`
 ### 📝 Notas Importantes
 
 1. **Encoding:** Use UTF-8 para caracteres especiais
-2. **Datas:** Formato AAAA-MM-DD (2010-05-15)
+2. **Datas:** Formato dd/mm/aaaa (15/05/2010)
 3. **Turmas:** Nome exato como cadastrado
 4. **Telefones:** Qualquer formato é aceito
 5. **Emails:** Validação automática
@@ -262,7 +262,7 @@ Arquivo: `template_alunos.xlsx`
 - `matricula_aluno` ou `aluno_nome`
 - `codigo_disciplina` ou `disciplina_nome`
 - `turma_nome`
-- `data` (formato: AAAA-MM-DD)
+- `data` (formato: dd/mm/aaaa)
 
 **Campos Opcionais:**
 - `professor_nome`, `status`, `periodo`, `observacao`

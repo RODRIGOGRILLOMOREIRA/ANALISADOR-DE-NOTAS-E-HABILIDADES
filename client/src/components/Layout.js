@@ -16,6 +16,7 @@ import {
   Divider,
   Tooltip,
   Avatar,
+  useTheme as useMuiTheme,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -47,6 +48,7 @@ const Layout = () => {
   const { logout, user } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const { schoolSettings, refreshKey } = useSchool();
+  const muiTheme = useMuiTheme();
 
   // Debug: Log quando schoolSettings mudar
   React.useEffect(() => {
@@ -78,7 +80,12 @@ const Layout = () => {
   ];
 
   const drawer = (
-    <div>
+    <Box 
+      sx={{ 
+        height: '100%',
+        backgroundColor: muiTheme.palette.mode === 'dark' ? '#000000' : '#FFFFFF',
+      }}
+    >
       <Toolbar sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 3 }}>
         {schoolSettings?.logo ? (
           <Avatar
@@ -119,9 +126,27 @@ const Layout = () => {
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
-            <ListItemButton onClick={() => navigate(item.path)}>
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
+            <ListItemButton 
+              onClick={() => navigate(item.path)}
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 188, 212, 0.08)',
+                }
+              }}
+            >
+              <ListItemIcon sx={{ color: '#00bcd4' }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.text}
+                primaryTypographyProps={{
+                  fontFamily: '"Poppins", "Roboto", sans-serif',
+                  fontWeight: 500,
+                  fontSize: '0.95rem',
+                  color: '#00bcd4',
+                  letterSpacing: '0.3px',
+                }}
+              />
             </ListItemButton>
           </ListItem>
         ))}
@@ -129,15 +154,31 @@ const Layout = () => {
       <Divider />
       <List>
         <ListItem disablePadding>
-          <ListItemButton onClick={handleLogout}>
-            <ListItemIcon>
+          <ListItemButton 
+            onClick={handleLogout}
+            sx={{
+              '&:hover': {
+                backgroundColor: 'rgba(0, 188, 212, 0.08)',
+              }
+            }}
+          >
+            <ListItemIcon sx={{ color: '#00bcd4' }}>
               <Logout />
             </ListItemIcon>
-            <ListItemText primary="Sair" />
+            <ListItemText 
+              primary="Sair"
+              primaryTypographyProps={{
+                fontFamily: '"Poppins", "Roboto", sans-serif',
+                fontWeight: 500,
+                fontSize: '0.95rem',
+                color: '#00bcd4',
+                letterSpacing: '0.3px',
+              }}
+            />
           </ListItemButton>
         </ListItem>
       </List>
-    </div>
+    </Box>
   );
 
   return (
@@ -145,57 +186,61 @@ const Layout = () => {
       <CssBaseline />
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
           background: (theme) => theme.palette.mode === 'dark'
             ? 'linear-gradient(135deg, #0A0E14 0%, #1a2332 100%)'
-            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            : '#ffffff',
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 2px 8px rgba(0, 0, 0, 0.3)'
+            : '0 2px 12px rgba(0, 0, 0, 0.08)',
+          borderBottom: (theme) => theme.palette.mode === 'dark'
+            ? 'none'
+            : '1px solid rgba(0, 0, 0, 0.06)',
         }}
       >
         <Toolbar>
           <IconButton
-            color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            sx={{ 
+              mr: 2, 
+              display: { sm: 'none' },
+              color: (theme) => theme.palette.mode === 'dark'
+                ? '#ffffff'
+                : '#1a1a1a',
+            }}
           >
             <MenuIcon />
           </IconButton>
-          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {schoolSettings?.logo && (
-              <Avatar
-                key={`appbar-logo-${refreshKey}`}
-                src={schoolSettings.logo}
-                alt="Logo da Escola"
-                imgProps={{ 
-                  onError: (e) => {
-                    console.error('Erro ao carregar logo no appbar');
-                    e.target.style.display = 'none';
-                  }
-                }}
-                sx={{ width: 40, height: 40, mr: 2 }}
-              />
-            )}
-            <Typography 
-              variant="h5" 
-              component="div" 
-              sx={{ 
-                fontFamily: '"Poppins", "Roboto", sans-serif',
-                fontWeight: 700,
-                letterSpacing: '0.5px',
-                textAlign: 'center',
-              }}
-            >
-              {schoolSettings?.nomeEscola || 'Sistema de Gerenciamento Escolar'}
-            </Typography>
-          </Box>
-          <Typography variant="body1" sx={{ mr: 2 }}>
+          <Box sx={{ flexGrow: 1 }} />
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              mr: 2,
+              fontFamily: '"Poppins", "Roboto", sans-serif',
+              fontWeight: 500,
+              fontSize: '0.95rem',
+              color: (theme) => theme.palette.mode === 'dark'
+                ? '#ffffff'
+                : '#1a1a1a',
+              letterSpacing: '0.3px',
+            }}
+          >
             {user?.nome} ({user?.tipo})
           </Typography>
           <Tooltip title={isDarkMode ? 'Modo Claro' : 'Modo Escuro'}>
-            <IconButton onClick={toggleTheme} color="inherit">
+            <IconButton 
+              onClick={toggleTheme} 
+              sx={{
+                color: (theme) => theme.palette.mode === 'dark'
+                  ? '#ffffff'
+                  : '#1a1a1a',
+              }}
+            >
               {isDarkMode ? <Brightness7 /> : <Brightness4 />}
             </IconButton>
           </Tooltip>
@@ -214,7 +259,13 @@ const Layout = () => {
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerWidth,
+              backgroundColor: (theme) => theme.palette.mode === 'dark' 
+                ? '#000000' 
+                : '#FFFFFF',
+            },
           }}
         >
           {drawer}
@@ -223,7 +274,13 @@ const Layout = () => {
           variant="permanent"
           sx={{
             display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerWidth,
+              backgroundColor: (theme) => theme.palette.mode === 'dark' 
+                ? '#000000' 
+                : '#FFFFFF',
+            },
           }}
           open
         >
@@ -234,8 +291,9 @@ const Layout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 1, sm: 2, md: 3 },
           width: { sm: `calc(100% - ${drawerWidth}px)` },
+          minHeight: '100vh',
         }}
       >
         <Toolbar />

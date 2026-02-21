@@ -29,7 +29,7 @@ import {
   Fade,
   Zoom,
 } from '@mui/material';
-import { Add, Edit, Delete, Upload, Download } from '@mui/icons-material';
+import { Add, Edit, Delete, Upload, Download, Remove, AddCircle, RemoveCircle } from '@mui/icons-material';
 import { alunoService, turmaService } from '../services';
 import { toast } from 'react-toastify';
 import Papa from 'papaparse';
@@ -49,7 +49,7 @@ const Alunos = () => {
     turma: '',
     responsavel: {
       nome: '',
-      telefone: '',
+      telefones: [''],
       email: '',
     },
   });
@@ -80,6 +80,34 @@ const Alunos = () => {
     }
   };
 
+  // Função para converter data dd/mm/aaaa para formato ISO aaaa-mm-dd
+  const converterDataBrasileira = (dataBrasileira) => {
+    if (!dataBrasileira) return null;
+    
+    const dataStr = String(dataBrasileira).trim();
+    
+    // Se já está no formato ISO (aaaa-mm-dd)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) {
+      return dataStr;
+    }
+    
+    // Formato brasileiro: dd/mm/aaaa
+    const match = dataStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (match) {
+      const [, dia, mes, ano] = match;
+      return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+    }
+    
+    // Formato com traço: dd-mm-aaaa
+    const matchTraco = dataStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    if (matchTraco) {
+      const [, dia, mes, ano] = matchTraco;
+      return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+    }
+    
+    return null;
+  };
+
   const handleOpen = (aluno = null) => {
     if (aluno) {
       setFormData({
@@ -89,7 +117,9 @@ const Alunos = () => {
         turma: aluno.turma?._id || '',
         responsavel: {
           nome: aluno.responsavel?.nome || '',
-          telefone: aluno.responsavel?.telefone || '',
+          telefones: aluno.responsavel?.telefones && aluno.responsavel.telefones.length > 0 
+            ? aluno.responsavel.telefones 
+            : [''],
           email: aluno.responsavel?.email || '',
         },
       });
@@ -102,7 +132,7 @@ const Alunos = () => {
         turma: '',
         responsavel: {
           nome: '',
-          telefone: '',
+          telefones: [''],
           email: '',
         },
       });
@@ -122,7 +152,7 @@ const Alunos = () => {
       turma: '',
       responsavel: {
         nome: '',
-        telefone: '',
+        telefones: [''],
         email: '',
       },
     });
@@ -234,14 +264,27 @@ const Alunos = () => {
             turmaId = turmaEncontrada?._id;
           }
 
+          // Processar telefones (aceita múltiplos separados por vírgula ou ponto e vírgula)
+          let telefones = [''];
+          if (row.responsavel_telefone) {
+            telefones = row.responsavel_telefone
+              .split(/[,;]/)
+              .map(t => t.trim())
+              .filter(t => t);
+            if (telefones.length === 0) telefones = [''];
+          }
+
+          // Converter data do formato brasileiro para ISO
+          const dataISO = converterDataBrasileira(row.dataNascimento);
+
           await alunoService.create({
             nome: row.nome,
             matricula: row.matricula,
-            dataNascimento: row.dataNascimento || null,
+            dataNascimento: dataISO,
             turma: turmaId,
             responsavel: {
               nome: row.responsavel_nome || '',
-              telefone: row.responsavel_telefone || '',
+              telefones: telefones,
               email: row.responsavel_email || '',
             },
           });
@@ -296,7 +339,7 @@ const Alunos = () => {
             [''],
             ['IMPORTANTE:'],
             ['- Campo "turma" já está preenchido, não altere'],
-            ['- Data de nascimento no formato AAAA-MM-DD'],
+            ['- Data de nascimento no formato dd/mm/aaaa (ex: 15/05/2010)'],
             ['- Preencha todos os dados do responsável'],
             ['- As 2 primeiras linhas são exemplos, podem ser apagadas'],
           ]);
@@ -325,7 +368,7 @@ const Alunos = () => {
           {
             nome: 'João Silva',
             matricula: '2026001',
-            dataNascimento: '2010-05-15',
+            dataNascimento: '15/05/2010',
             turma: '1º Ano A',
             responsavel_nome: 'Maria Silva',
             responsavel_telefone: '(11) 98765-4321',
@@ -334,16 +377,16 @@ const Alunos = () => {
           {
             nome: 'Ana Santos',
             matricula: '2026002',
-            dataNascimento: '2011-08-20',
+            dataNascimento: '20/08/2011',
             turma: '2º Ano B',
             responsavel_nome: 'Carlos Santos',
-            responsavel_telefone: '(11) 91234-5678',
+            responsavel_telefone: '(11) 91234-5678, (11) 98888-9999',
             responsavel_email: 'carlos@email.com'
           },
           {
             nome: 'Pedro Costa',
             matricula: '2026003',
-            dataNascimento: '2009-03-10',
+            dataNascimento: '10/03/2009',
             turma: '3º Ano C',
             responsavel_nome: 'Lucia Costa',
             responsavel_telefone: '(11) 99876-5432',
@@ -357,7 +400,7 @@ const Alunos = () => {
         // Criar template CSV
         const csv = 'nome,matricula,dataNascimento,turma,responsavel_nome,responsavel_telefone,responsavel_email\n' +
                     'João Silva,2026001,2010-05-15,1º Ano A,Maria Silva,(11) 98765-4321,maria@email.com\n' +
-                    'Ana Santos,2026002,2011-08-20,2º Ano B,Carlos Santos,(11) 91234-5678,carlos@email.com\n' +
+                    'Ana Santos,2026002,2011-08-20,2º Ano B,Carlos Santos,"(11) 91234-5678, (11) 98888-9999",carlos@email.com\n' +
                     'Pedro Costa,2026003,2009-03-10,3º Ano C,Lucia Costa,(11) 99876-5432,lucia@email.com';
         
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -466,14 +509,33 @@ const Alunos = () => {
                 }}
               >
                 <TableCell>
-                  <Chip label={aluno.matricula} size="small" color="primary" variant="outlined" />
+                  <Chip 
+                    label={aluno.matricula} 
+                    size="small" 
+                    color="primary" 
+                    sx={{ 
+                      color: '#fff',
+                      fontWeight: 600
+                    }}
+                  />
                 </TableCell>
                 <TableCell>{aluno.nome}</TableCell>
                 <TableCell>{formatDate(aluno.dataNascimento)}</TableCell>
                 <TableCell>
                   {aluno.turma?.nome || '-'}
                 </TableCell>
-                <TableCell>{aluno.responsavel?.nome || '-'}</TableCell>
+                <TableCell>
+                  <Box>
+                    <Typography variant="body2" fontWeight="600">
+                      {aluno.responsavel?.nome || '-'}
+                    </Typography>
+                    {aluno.responsavel?.telefones && aluno.responsavel.telefones.length > 0 && (
+                      <Typography variant="caption" color="text.secondary">
+                        {aluno.responsavel.telefones.filter(t => t).join(' | ')}
+                      </Typography>
+                    )}
+                  </Box>
+                </TableCell>
                 <TableCell align="center">
                   <IconButton
                     color="primary"
@@ -574,19 +636,60 @@ const Alunos = () => {
               />
 
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Telefone"
-                    fullWidth
-                    value={formData.responsavel.telefone}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      responsavel: { ...formData.responsavel, telefone: e.target.value }
-                    })}
-                    placeholder="(11) 98765-4321"
-                  />
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Telefone(s)
+                  </Typography>
+                  {formData.responsavel.telefones.map((telefone, index) => (
+                    <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                      <TextField
+                        label={`Telefone ${index + 1}`}
+                        fullWidth
+                        value={telefone}
+                        onChange={(e) => {
+                          const novosTelefones = [...formData.responsavel.telefones];
+                          novosTelefones[index] = e.target.value;
+                          setFormData({ 
+                            ...formData, 
+                            responsavel: { ...formData.responsavel, telefones: novosTelefones }
+                          });
+                        }}
+                        placeholder="(11) 98765-4321"
+                      />
+                      {formData.responsavel.telefones.length > 1 && (
+                        <IconButton
+                          color="error"
+                          onClick={() => {
+                            const novosTelefones = formData.responsavel.telefones.filter((_, i) => i !== index);
+                            setFormData({ 
+                              ...formData, 
+                              responsavel: { ...formData.responsavel, telefones: novosTelefones }
+                            });
+                          }}
+                        >
+                          <RemoveCircle />
+                        </IconButton>
+                      )}
+                      {index === formData.responsavel.telefones.length - 1 && (
+                        <IconButton
+                          color="primary"
+                          onClick={() => {
+                            setFormData({ 
+                              ...formData, 
+                              responsavel: { 
+                                ...formData.responsavel, 
+                                telefones: [...formData.responsavel.telefones, '']
+                              }
+                            });
+                          }}
+                        >
+                          <AddCircle />
+                        </IconButton>
+                      )}
+                    </Box>
+                  ))}
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <TextField
                     label="Email"
                     type="email"
@@ -610,9 +713,11 @@ const Alunos = () => {
                 <br />
                 Colunas: nome, matricula, dataNascimento, turma, responsavel_nome, responsavel_telefone, responsavel_email
                 <br />
-                Data no formato: AAAA-MM-DD (ex: 2010-05-15)
+                <strong>Data no formato: dd/mm/aaaa</strong> (ex: 15/05/2010)
                 <br />
                 Turma: nome exato da turma cadastrada
+                <br />
+                <strong>Telefone:</strong> Para múltiplos telefones, separe por vírgula ou ponto e vírgula (ex: (11) 98765-4321, (11) 91234-5678)
               </Alert>
 
               {/* Seletor para template personalizado */}

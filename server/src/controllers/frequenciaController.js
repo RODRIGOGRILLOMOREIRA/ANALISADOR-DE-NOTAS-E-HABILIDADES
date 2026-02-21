@@ -115,53 +115,130 @@ exports.registrarChamadaTurma = async (req, res) => {
     const { data, disciplina, professor, periodo, presencas } = req.body;
     // presencas: { alunoId: 'presente' | 'falta' | 'falta-justificada' }
     
+    console.log('📝 Registrando chamada:', {
+      turmaId,
+      data,
+      disciplina,
+      professor,
+      periodo,
+      totalPresencas: Object.keys(presencas || {}).length
+    });
+    
     const Turma = require('../models/Turma');
-    const turma = await Turma.findById(turmaId).populate('alunos');
+    const turma = await Turma.findById(turmaId);
     
     if (!turma) {
+      console.error('❌ Turma não encontrada:', turmaId);
       return res.status(404).json({ message: 'Turma não encontrada' });
     }
     
+    // Buscar alunos da turma diretamente pelo campo 'turma' do modelo Aluno
+    const alunos = await Aluno.find({ turma: turmaId, ativo: true });
+    
+    console.log('✅ Turma encontrada:', turma.nome, '- Alunos ativos:', alunos.length);
+    
+    if (alunos.length === 0) {
+      console.warn('⚠️ Nenhum aluno encontrado para esta turma');
+      return res.status(400).json({ 
+        message: 'Nenhum aluno encontrado para esta turma',
+        total: 0,
+        frequencias: []
+      });
+    }
+    
+    // Normalizar data para meia-noite local (sem timezone)
+    const [ano, mesStr, dia] = data.split('-');
+    const dataFrequencia = new Date(parseInt(ano), parseInt(mesStr) - 1, parseInt(dia), 0, 0, 0, 0);
+    console.log('📅 Data da frequência normalizada:', {
+      input: data,
+      output: dataFrequencia.toISOString(),
+      local: dataFrequencia.toLocaleDateString('pt-BR')
+    });
+    
     const frequenciasCriadas = [];
     
-    for (const aluno of turma.alunos) {
-      const status = presencas[aluno._id] || 'presente';
+    // Calcular mes e trimestre da data
+    const mes = dataFrequencia.getMonth() + 1;
+    let trimestre = 1;
+    if (mes <= 3) trimestre = 1;
+    else if (mes <= 6) trimestre = 2;
+    else if (mes <= 9) trimestre = 3;
+    else trimestre = 4;
+    
+    console.log('📊 Calculados - Mês:', mes, 'Trimestre:', trimestre);
+    
+    for (const aluno of alunos) {
+      const alunoIdStr = aluno._id.toString();
+      const status = presencas[alunoIdStr] || presencas[aluno._id] || 'presente';
       
       const frequenciaData = {
         aluno: aluno._id,
         turma: turmaId,
         disciplina,
-        professor,
-        data: new Date(data),
+        professor: professor || null,
+        data: dataFrequencia,
         status,
         periodo,
-        ano: new Date(data).getFullYear(),
+        ano: dataFrequencia.getFullYear(),
+        mes,
+        trimestre,
         registradoPor: req.user?._id
       };
       
-      // Verificar se já existe
+      console.log('📝 Processando aluno:', {
+        nome: aluno.nome,
+        id: alunoIdStr,
+        status,
+        mes,
+        trimestre
+      });
+      
+      // Verificar se já existe usando range de data para evitar problemas de timezone
+      const inicioDia = new Date(parseInt(ano), parseInt(mesStr) - 1, parseInt(dia), 0, 0, 0, 0);
+      const fimDia = new Date(parseInt(ano), parseInt(mesStr) - 1, parseInt(dia), 23, 59, 59, 999);
+      
       const existente = await Frequencia.findOne({
         aluno: aluno._id,
         disciplina,
-        data: new Date(data)
+        data: {
+          $gte: inicioDia,
+          $lte: fimDia
+        }
       });
       
       if (existente) {
+        console.log('🔄 Atualizando frequência existente:', aluno.nome, '- Status atual:', existente.status, '→ Novo:', status);
         existente.status = status;
+        existente.periodo = periodo;
+        existente.turma = turmaId;
+        existente.mes = mes;
+        existente.trimestre = trimestre;
+        existente.data = dataFrequencia; // Atualizar com a data normalizada
+        if (professor) existente.professor = professor;
         await existente.save();
         frequenciasCriadas.push(existente);
       } else {
+        console.log('➕ Criando nova frequência:', aluno.nome, '- Status:', status);
         const frequencia = await Frequencia.create(frequenciaData);
         frequenciasCriadas.push(frequencia);
       }
     }
     
+    console.log('✅ Total de frequências processadas:', frequenciasCriadas.length);
+    
+    // Popular dados do aluno para retornar ao frontend
+    const frequenciasPopuladas = await Frequencia.populate(frequenciasCriadas, {
+      path: 'aluno',
+      select: 'nome matricula'
+    });
+    
     res.status(201).json({
       message: 'Chamada registrada com sucesso',
-      total: frequenciasCriadas.length,
-      frequencias: frequenciasCriadas
+      total: frequenciasPopuladas.length,
+      frequencias: frequenciasPopuladas
     });
   } catch (error) {
+    console.error('❌ Erro ao registrar chamada:', error);
     res.status(400).json({ message: 'Erro ao registrar chamada', error: error.message });
   }
 };
@@ -222,17 +299,43 @@ exports.getFrequenciaTurmaDia = async (req, res) => {
     const { turmaId, data } = req.params;
     const { disciplina } = req.query;
     
+    // Normalizar data para range do dia completo
+    const [ano, mes, dia] = data.split('-');
+    const inicioDia = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia), 0, 0, 0, 0);
+    const fimDia = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia), 23, 59, 59, 999);
+    
     const filter = {
       turma: turmaId,
-      data: new Date(data),
+      data: {
+        $gte: inicioDia,
+        $lte: fimDia
+      },
       ativo: true
     };
     
     if (disciplina) filter.disciplina = disciplina;
     
+    console.log('🔍 Buscando frequências:', {
+      turmaId,
+      disciplina,
+      dataInicio: inicioDia.toISOString(),
+      dataFim: fimDia.toISOString(),
+      dataLocal: inicioDia.toLocaleDateString('pt-BR')
+    });
+    
     const frequencias = await Frequencia.find(filter)
       .populate('aluno', 'nome matricula')
-      .populate('disciplina', 'nome');
+      .populate('disciplina', 'nome')
+      .sort({ 'aluno.nome': 1 });
+    
+    console.log('✅ Frequências encontradas:', {
+      total: frequencias.length,
+      frequencias: frequencias.map(f => ({
+        aluno: f.aluno?.nome,
+        status: f.status,
+        data: new Date(f.data).toLocaleDateString('pt-BR')
+      }))
+    });
     
     const resumo = {
       total: frequencias.length,
@@ -252,6 +355,7 @@ exports.getFrequenciaTurmaDia = async (req, res) => {
       frequencias
     });
   } catch (error) {
+    console.error('❌ Erro ao buscar frequência:', error);
     res.status(500).json({ message: 'Erro ao buscar frequência da turma', error: error.message });
   }
 };
@@ -260,19 +364,56 @@ exports.getFrequenciaTurmaDia = async (req, res) => {
 // @route   GET /api/frequencias/dashboard
 exports.getDashboardFrequencia = async (req, res) => {
   try {
-    const { turma, ano, trimestre, dataInicio, dataFim } = req.query;
+    const { turma, aluno, disciplina, ano, trimestre, dataInicio, dataFim } = req.query;
     
-    const filter = { ativo: true };
+    console.log('📊 Dashboard Frequência - Filtros recebidos:', {
+      turma,
+      aluno,
+      disciplina,
+      ano,
+      trimestre,
+      dataInicio,
+      dataFim
+    });
+    
+    const filter = {};
     if (turma) filter.turma = turma;
+    if (aluno) filter.aluno = aluno;
+    if (disciplina) filter.disciplina = disciplina;
     if (ano) filter.ano = parseInt(ano);
     if (trimestre) filter.trimestre = parseInt(trimestre);
     
-    if (dataInicio && dataFim) {
-      filter.data = {
-        $gte: new Date(dataInicio),
-        $lte: new Date(dataFim)
-      };
+    // Filtro de data com normalização de timezone
+    if (dataInicio || dataFim) {
+      filter.data = {};
+      
+      if (dataInicio) {
+        // Normalizar data início para meia-noite local
+        const [anoIni, mesIni, diaIni] = dataInicio.split('-');
+        const dataInicioNorm = new Date(parseInt(anoIni), parseInt(mesIni) - 1, parseInt(diaIni), 0, 0, 0, 0);
+        filter.data.$gte = dataInicioNorm;
+        console.log('📅 Data Início normalizada:', dataInicioNorm.toISOString(), '-', dataInicioNorm.toLocaleDateString('pt-BR'));
+      }
+      
+      if (dataFim) {
+        // Normalizar data fim para 23:59:59 local
+        const [anoFim, mesFim, diaFim] = dataFim.split('-');
+        const dataFimNorm = new Date(parseInt(anoFim), parseInt(mesFim) - 1, parseInt(diaFim), 23, 59, 59, 999);
+        filter.data.$lte = dataFimNorm;
+        console.log('📅 Data Fim normalizada:', dataFimNorm.toISOString(), '-', dataFimNorm.toLocaleDateString('pt-BR'));
+      }
+      
+      // Se apenas dataInicio foi fornecido, filtrar apenas esse dia
+      if (dataInicio && !dataFim) {
+        const [anoIni, mesIni, diaIni] = dataInicio.split('-');
+        const inicioDia = new Date(parseInt(anoIni), parseInt(mesIni) - 1, parseInt(diaIni), 0, 0, 0, 0);
+        const fimDia = new Date(parseInt(anoIni), parseInt(mesIni) - 1, parseInt(diaIni), 23, 59, 59, 999);
+        filter.data = { $gte: inicioDia, $lte: fimDia };
+        console.log('📅 Filtrando dia único:', inicioDia.toLocaleDateString('pt-BR'));
+      }
     }
+    
+    console.log('🔍 Filtro final aplicado:', JSON.stringify(filter, null, 2));
     
     // Estatísticas gerais
     const [total, presencas, faltas, faltasJustificadas] = await Promise.all([
@@ -282,40 +423,121 @@ exports.getDashboardFrequencia = async (req, res) => {
       Frequencia.countDocuments({ ...filter, status: 'falta-justificada' })
     ]);
     
-    const percentualPresenca = total > 0 ? ((presencas / total) * 100).toFixed(2) : 100;
+    const percentualPresenca = total > 0 ? ((presencas / total) * 100) : 100;
     
-    // Alunos com frequência crítica (abaixo de 75%)
-    const alunosComFalta = await Frequencia.aggregate([
+    console.log('📊 Estatísticas calculadas:', {
+      total,
+      presencas,
+      faltas,
+      faltasJustificadas,
+      percentualPresenca: percentualPresenca.toFixed(2) + '%'
+    });
+    
+    // Se apenas turma está selecionada (sem aluno ou disciplina específicos), 
+    // buscar TODOS os alunos da turma
+    let todosDados = [];
+    
+    if (turma && !aluno && !disciplina) {
+      console.log('📋 Buscando TODOS os alunos da turma:', turma);
+      
+      // Buscar todos os alunos da turma
+      const todosAlunos = await Aluno.find({ turma, ativo: true }).select('_id nome matricula');
+      console.log('✅ Total de alunos encontrados na turma:', todosAlunos.length);
+      
+      // Para cada aluno, buscar suas estatísticas de frequência
+      for (const alunoDoc of todosAlunos) {
+        const filterAluno = { ...filter, aluno: alunoDoc._id };
+        
+        const [totalAulas, presencasAluno, faltasAluno, justificadasAluno] = await Promise.all([
+          Frequencia.countDocuments(filterAluno),
+          Frequencia.countDocuments({ ...filterAluno, status: 'presente' }),
+          Frequencia.countDocuments({ ...filterAluno, status: 'falta' }),
+          Frequencia.countDocuments({ ...filterAluno, status: 'falta-justificada' })
+        ]);
+        
+        const percentualAl = totalAulas > 0 ? ((presencasAluno / totalAulas) * 100) : 0;
+        
+        todosDados.push({
+          aluno: {
+            _id: alunoDoc._id,
+            nome: alunoDoc.nome,
+            matricula: alunoDoc.matricula
+          },
+          total: totalAulas,
+          presentes: presencasAluno,
+          faltas: faltasAluno,
+          justificadas: justificadasAluno,
+          percentualPresenca: parseFloat(percentualAl.toFixed(2)),
+          status: Frequencia.getStatusFrequencia(percentualAl)
+        });
+      }
+      
+      // Ordenar por percentual (menores primeiro)
+      todosDados.sort((a, b) => a.percentualPresenca - b.percentualPresenca);
+      
+    } else {
+      // Usar agregação para estatísticas por aluno (comportamento original)
+      const estatisticasPorAluno = await Frequencia.aggregate([
+        { $match: filter },
+        {
+          $group: {
+            _id: '$aluno',
+            totalAulas: { $sum: 1 },
+            presencas: {
+              $sum: { $cond: [{ $eq: ['$status', 'presente'] }, 1, 0] }
+            },
+            faltas: {
+              $sum: { $cond: [{ $eq: ['$status', 'falta'] }, 1, 0] }
+            },
+            faltasJustificadas: {
+              $sum: { $cond: [{ $eq: ['$status', 'falta-justificada'] }, 1, 0] }
+            }
+          }
+        },
+        {
+          $addFields: {
+            percentualPresenca: {
+              $multiply: [
+                { $divide: ['$presencas', '$totalAulas'] },
+                100
+              ]
+            }
+          }
+        },
+        { $sort: { percentualPresenca: 1 } }
+      ]);
+      
+      // Popular dados dos alunos
+      await Aluno.populate(estatisticasPorAluno, { path: '_id', select: 'nome matricula' });
+      
+      // Formatar dados
+      todosDados = estatisticasPorAluno.map(a => ({
+        aluno: a._id,
+        total: a.totalAulas,
+        presentes: a.presencas,
+        faltas: a.faltas,
+        justificadas: a.faltasJustificadas,
+        percentualPresenca: parseFloat(a.percentualPresenca.toFixed(2)),
+        status: Frequencia.getStatusFrequencia(a.percentualPresenca)
+      }));
+    }
+    
+    // Calcular total de dias únicos registrados
+    const diasUnicos = await Frequencia.aggregate([
       { $match: filter },
       {
         $group: {
-          _id: '$aluno',
-          totalAulas: { $sum: 1 },
-          presencas: {
-            $sum: { $cond: [{ $eq: ['$status', 'presente'] }, 1, 0] }
-          },
-          faltas: {
-            $sum: { $cond: [{ $in: ['$status', ['falta', 'falta-justificada']] }, 1, 0] }
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$data' }
           }
         }
       },
-      {
-        $addFields: {
-          percentualPresenca: {
-            $multiply: [
-              { $divide: ['$presencas', '$totalAulas'] },
-              100
-            ]
-          }
-        }
-      },
-      { $match: { percentualPresenca: { $lt: 75 } } },
-      { $sort: { percentualPresenca: 1 } },
-      { $limit: 10 }
+      { $count: 'totalDias' }
     ]);
     
-    // Popular dados dos alunos
-    await Aluno.populate(alunosComFalta, { path: '_id', select: 'nome matricula' });
+    const totalDiasRegistrados = diasUnicos.length > 0 ? diasUnicos[0].totalDias : 0;
+    
+    console.log('📅 Total de dias únicos registrados:', totalDiasRegistrados);
     
     // Frequência por dia da semana
     const frequenciaPorDia = await Frequencia.aggregate([
@@ -332,22 +554,22 @@ exports.getDashboardFrequencia = async (req, res) => {
       { $sort: { _id: 1 } }
     ]);
     
+    // Filtrar apenas alunos críticos (abaixo de 75%)
+    const alunosCriticos = todosDados.filter(a => a.percentualPresenca < 75);
+    
+    console.log(`📋 Total de alunos: ${todosDados.length}, Críticos: ${alunosCriticos.length}`);
+    
     res.json({
       estatisticasGerais: {
         total,
         presencas,
         faltas,
         faltasJustificadas,
-        percentualPresenca: parseFloat(percentualPresenca)
+        percentualPresenca: parseFloat(percentualPresenca.toFixed(2)),
+        totalDiasRegistrados
       },
-      alunosCriticos: alunosComFalta.map(a => ({
-        aluno: a._id,
-        totalAulas: a.totalAulas,
-        presencas: a.presencas,
-        faltas: a.faltas,
-        percentual: a.percentualPresenca.toFixed(2),
-        status: Frequencia.getStatusFrequencia(a.percentualPresenca)
-      })),
+      alunosPorFrequencia: todosDados,
+      alunosCriticos: alunosCriticos,
       frequenciaPorDiaSemana: frequenciaPorDia
     });
   } catch (error) {

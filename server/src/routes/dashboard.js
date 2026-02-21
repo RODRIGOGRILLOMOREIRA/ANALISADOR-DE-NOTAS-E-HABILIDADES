@@ -7,7 +7,8 @@ const {
   getAlunosEmRisco,
   getHabilidadesDesenvolvidas,
   getEvolucaoHabilidades,
-  getDistribuicaoNiveisHabilidades
+  getDistribuicaoNiveisHabilidades,
+  getContagemAlunos
 } = require('../controllers/dashboardController');
 const { auth } = require('../middleware/auth');
 
@@ -20,5 +21,6 @@ router.get('/alunos-risco', getAlunosEmRisco);
 router.get('/habilidades-desenvolvidas', getHabilidadesDesenvolvidas);
 router.get('/evolucao-habilidades', getEvolucaoHabilidades);
 router.get('/distribuicao-niveis-habilidades', getDistribuicaoNiveisHabilidades);
+router.get('/contagem-alunos', getContagemAlunos);
 
 module.exports = router;
