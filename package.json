@@ -7,7 +7,6 @@
   "license": "PROPRIETARY",
   "private": true,
   "scripts": {
-    "postinstall": "cd client && npm install && cd ../server && npm install",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "cd client && npm start",
     "dev:server": "cd server && npm start",

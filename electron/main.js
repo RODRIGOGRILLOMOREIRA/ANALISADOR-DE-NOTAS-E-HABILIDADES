@@ -233,42 +233,62 @@ app.whenReady().then(async () => {
 
   // Verifica dependências do servidor
   const hasDependencies = checkServerDependencies();
+  
   if (!hasDependencies && !isDev) {
     console.warn('⚠️ Dependências do servidor não encontradas');
     console.log('📦 Caminho esperado:', SERVER_MODULES_PATH);
+    console.log('⏳ Aguardando instalação das dependências...');
+    
+    // Aguarda mais tempo para o instalador finalizar
+    await new Promise(resolve => setTimeout(resolve, 5000));
   }
 
-  // Inicia servidor backend
-  try {
-    await startBackendServer();
-    console.log('✅ Servidor backend iniciado');
-  } catch (error) {
-    console.error('❌ Erro ao iniciar servidor:', error);
-    // Mostra mensagem opcional, mas continua
+  // Inicia servidor backend apenas se as dependências estiverem instaladas
+  if (hasDependencies || isDev) {
+    try {
+      await startBackendServer();
+      console.log('✅ Servidor backend iniciado');
+    } catch (error) {
+      console.error('❌ Erro ao iniciar servidor:', error);
+      // Em produção, mostra aviso mas continua
+      if (!isDev) {
+        dialog.showMessageBox({
+          type: 'warning',
+          title: 'SGE CENTENÁRIO',
+          message: 'Servidor Backend',
+          detail: 'O servidor está sendo configurado.\n\nSe houver problemas de conexão, reinicie o aplicativo.',
+          buttons: ['OK']
+        });
+      }
+    }
+    
+    // Aguarda servidor estar pronto
+    await new Promise(resolve => setTimeout(resolve, 3000));
+  } else {
+    console.log('⏭️ Pulando inicialização do servidor - dependências pendentes');
+    
+    // Avisa o usuário que precisa esperar
     if (!isDev) {
       dialog.showMessageBox({
-        type: 'warning',
-        title: 'SGE CENTENÁRIO',
-        message: 'Aviso de Inicialização',
-        detail: 'O servidor backend está iniciando em segundo plano.\n\nSe houver problemas de conexão, reinicie o aplicativo.',
-        buttons: ['Continuar']
+        type: 'info',
+        title: 'SGE CENTENÁRIO - Primeira Execução',
+        message: 'Configuração Inicial',
+        detail: 'O sistema está sendo configurado pela primeira vez.\n\nIsso pode levar alguns minutos.\n\nPor favor, feche e reabra o aplicativo após a instalação.',
+        buttons: ['OK']
       });
     }
   }
-
-  // Aguarda um pouco para o servidor estar pronto
-  await new Promise(resolve => setTimeout(resolve, 3000));
 
   // Cria janela principal
   createWindow();
   createTray();
 
-  // Verifica atualizações após 10 segundos
+  // Verifica atualizações após 15 segundos
   setTimeout(() => {
     if (!isDev) {
       checkForUpdates();
     }
-  }, 10000);
+  }, 15000);
 });
 
 // Fechar servidor ao sair

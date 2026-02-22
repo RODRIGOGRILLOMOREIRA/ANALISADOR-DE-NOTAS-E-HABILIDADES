@@ -9,13 +9,12 @@ directories:
 files:
   - electron/**/*
   - client/build/**/*
-  - server/**/*
   - package.json
   - "!**/{.git,.gitignore,.gitattributes,README.md}"
   - "!client/src"
   - "!client/public"
   - "!client/node_modules"
-  - "!server/node_modules"
+  - "!server/**/*"
   - "!{.env,.env.*}"
 
 extraResources:
@@ -23,10 +22,9 @@ extraResources:
     to: server
     filter:
       - "**/*"
+      - "!node_modules/**/*"
   - from: verificar-instalacao.bat
     to: verificar-instalacao.bat
-  - from: iniciar-app.bat
-    to: iniciar-app.bat
   - from: iniciar-app.bat
     to: iniciar-app.bat
 
@@ -61,7 +59,8 @@ artifactName: ${productName}-Setup-${version}.${ext}
 
 compression: normal
 
-asar: true
+asar:
+  smartUnpack: false
+
 asarUnpack:
   - "**/*.node"
-  - "server/**/*"
