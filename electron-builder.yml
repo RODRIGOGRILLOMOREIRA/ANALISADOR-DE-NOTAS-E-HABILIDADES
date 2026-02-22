@@ -25,6 +25,10 @@ extraResources:
       - "**/*"
   - from: verificar-instalacao.bat
     to: verificar-instalacao.bat
+  - from: iniciar-app.bat
+    to: iniciar-app.bat
+  - from: iniciar-app.bat
+    to: iniciar-app.bat
 
 win:
   target:
@@ -43,7 +47,7 @@ nsis:
   uninstallerIcon: build/installerIcon.ico
   deleteAppDataOnUninstall: false
   perMachine: false
-  runAfterFinish: true
+
   include: build/installer.nsh
 
 publish:
