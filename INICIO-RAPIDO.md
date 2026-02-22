@@ -71,7 +71,7 @@ npm run dist
 
 Resultado:
 ```
-dist/SGE CENTENÁRIO-Setup-1.0.0.exe
+dist/SGE CENTENARIO-Setup-1.0.0.exe
 ```
 
 ---
@@ -91,7 +91,7 @@ npm run electron-dev
 
 ### Distribuir para Escola
 1. Gere o instalador
-2. Envie `SGE CENTENÁRIO-Setup-1.0.0.exe`
+2. Envie `SGE CENTENARIO-Setup-1.0.0.exe`
 3. Usuários instalam e usam!
 
 ---

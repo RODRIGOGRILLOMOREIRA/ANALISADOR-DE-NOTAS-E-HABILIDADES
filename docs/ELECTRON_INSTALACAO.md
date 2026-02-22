@@ -141,10 +141,10 @@ npm run dist
 Isso gera:
 ```
 dist/
-└── SGE CENTENÁRIO-Setup-1.0.0.exe  (Instalador Windows)
+└── SGE CENTENARIO-Setup-1.0.0.exe  (Instalador Windows)
 ```
 
-**Tamanho aproximado:** 60-80 MB
+**Tamanho aproximado:** 80 MB
 
 ---
 
@@ -152,7 +152,7 @@ dist/
 
 ### Para Usuários da Escola
 
-1. Envie o arquivo `SGE CENTENÁRIO-Setup-1.0.0.exe`
+1. Envie o arquivo `SGE CENTENARIO-Setup-1.0.0.exe`
 2. Usuário executa o instalador
 3. Instalador cria:
    - ✅ Ícone na Área de Trabalho
@@ -206,7 +206,7 @@ Ao clicar no ícone:
 Ou manualmente no GitHub:
 - Vá em **Releases** → **Create new release**
 - Tag: `v1.1.0`
-- Upload: `SGE CENTENÁRIO-Setup-1.1.0.exe`
+- Upload: `SGE CENTENARIO-Setup-1.1.0.exe`
 - Publish release
 
 ### Configurar GitHub Token

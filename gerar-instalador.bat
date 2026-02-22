@@ -53,7 +53,7 @@ echo ═════════════════════════
 echo   ✅ INSTALADOR GERADO COM SUCESSO!
 echo ═══════════════════════════════════════════════════════════════
 echo.
-echo   Arquivo gerado em: dist\SGE CENTENÁRIO-Setup-1.0.0.exe
+echo   Arquivo gerado em: dist\SGE CENTENARIO-Setup-1.0.0.exe
 echo.
 echo   Você pode:
 echo   1. Testar o instalador

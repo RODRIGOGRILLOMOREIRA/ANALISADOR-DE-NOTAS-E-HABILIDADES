@@ -1,5 +1,5 @@
 appId: com.sgecentenario.app
-productName: SGE CENTENÁRIO
+productName: SGE CENTENARIO
 copyright: Copyright © 2026 SGE CENTENÁRIO
 
 directories:
@@ -10,9 +10,8 @@ files:
   - electron/**/*
   - client/build/**/*
   - server/**/*
-  - docs/LOGO ESCOLA.jpg
   - package.json
-  - "!**/{.git,.gitignore,.gitattributes,README.md,docs/**/*.md}"
+  - "!**/{.git,.gitignore,.gitattributes,README.md}"
   - "!client/src"
   - "!client/public"
   - "!client/node_modules"
@@ -32,24 +31,17 @@ win:
       arch:
         - x64
   icon: build/icon.ico
-  publisherName: SGE CENTENÁRIO
-  fileAssociations:
-    - ext: sge
-      name: SGE File
-      description: Arquivo SGE CENTENÁRIO
 
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: always
   createStartMenuShortcut: true
-  shortcutName: SGE CENTENÁRIO
+  shortcutName: SGE CENTENARIO
   installerIcon: build/installerIcon.ico
   uninstallerIcon: build/installerIcon.ico
   deleteAppDataOnUninstall: false
-  allowElevation: true
   perMachine: false
-  menuCategory: true
 
 publish:
   provider: github
@@ -60,7 +52,7 @@ publish:
 
 artifactName: ${productName}-Setup-${version}.${ext}
 
-compression: maximum
+compression: normal
 
 asar: true
 asarUnpack:

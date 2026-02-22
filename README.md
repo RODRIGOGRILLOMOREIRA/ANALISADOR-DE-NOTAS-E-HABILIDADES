@@ -12,7 +12,7 @@ Sistema completo de gestão escolar com controle de alunos, professores, turmas,
 
 #### 📦 Características
 
-- **Instalador NSIS**: `SGE CENTENÁRIO-Setup-1.0.0.exe` (80,68 MB)
+- **Instalador NSIS**: `SGE CENTENARIO-Setup-1.0.0.exe` (80,64 MB)
 - **Ícone Personalizado**: Logo da escola em todos os ícones
 - **MongoDB Atlas**: Conexão automática com banco de dados na nuvem
 - **6 Computadores Simultâneos**: Suporte para múltiplos usuários
@@ -22,7 +22,7 @@ Sistema completo de gestão escolar com controle de alunos, professores, turmas,
 
 #### 🚀 Instalação
 
-1. Baixe o instalador: `dist/SGE CENTENÁRIO-Setup-1.0.0.exe`
+1. Baixe o instalador: `dist/SGE CENTENARIO-Setup-1.0.0.exe`
 2. Execute o arquivo
 3. Escolha o diretório de instalação (ou use o padrão)
 4. Aceite criar ícones na área de trabalho e menu iniciar
@@ -161,7 +161,7 @@ PROJETO ANALIZADOR DE NOTAS E HABILIDADES/
 │   └── installerIcon.ico        # Ícone do instalador
 │
 ├── dist/                        # Build de distribuição
-│   ├── SGE CENTENÁRIO-Setup-1.0.0.exe  # Instalador Windows
+│   ├── SGE CENTENARIO-Setup-1.0.0.exe  # Instalador Windows
 │   ├── latest.yml               # Metadados auto-update
 │   └── win-unpacked/            # App descompactado
 │
@@ -293,7 +293,7 @@ npm run build
 # 2. Gerar instalador
 npm run dist
 
-# Instalador gerado em: dist/SGE CENTENÁRIO-Setup-1.0.0.exe
+# Instalador gerado em: dist/SGE CENTENARIO-Setup-1.0.0.exe
 ```
 
 ### Publicar para GitHub Releases

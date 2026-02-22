@@ -124,7 +124,7 @@ gerar-instalador.bat
 **Resultado:**
 ```
 dist/
-└── SGE CENTENÁRIO-Setup-1.0.0.exe  (60-80 MB)
+└── SGE CENTENARIO-Setup-1.0.0.exe  (80 MB)
 ```
 
 ---
@@ -135,7 +135,7 @@ dist/
 
 1. **Copie o instalador:**
    ```
-   SGE CENTENÁRIO-Setup-1.0.0.exe
+   SGE CENTENARIO-Setup-1.0.0.exe
    ```
 
 2. **Envie para cada computador**
@@ -201,7 +201,7 @@ npm run dist
 **4. Publicar no GitHub:**
 - Releases → Create new release
 - Tag: v1.1.0
-- Upload: SGE CENTENÁRIO-Setup-1.1.0.exe
+- Upload: SGE CENTENARIO-Setup-1.1.0.exe
 - Publish release
 
 **5. Usuários recebem notificação automática!**
