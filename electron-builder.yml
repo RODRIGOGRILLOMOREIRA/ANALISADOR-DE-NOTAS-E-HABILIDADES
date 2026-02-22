@@ -23,7 +23,8 @@ extraResources:
     to: server
     filter:
       - "**/*"
-      - "!node_modules/**/*"
+  - from: verificar-instalacao.bat
+    to: verificar-instalacao.bat
 
 win:
   target:
@@ -42,6 +43,8 @@ nsis:
   uninstallerIcon: build/installerIcon.ico
   deleteAppDataOnUninstall: false
   perMachine: false
+  runAfterFinish: true
+  include: build/installer.nsh
 
 publish:
   provider: github

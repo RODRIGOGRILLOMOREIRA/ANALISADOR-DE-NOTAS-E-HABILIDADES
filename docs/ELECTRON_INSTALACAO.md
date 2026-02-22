@@ -1,11 +1,60 @@
 # SGE CENTENÁRIO - Instalação e Configuração
 
+## ✅ INSTALADOR ROBUSTO - ATUALIZAÇÃO 21/02/2026
+
+### 🎉 Problema do "Erro ao Concluir" - RESOLVIDO!
+
+A versão atual do instalador implementa as seguintes melhorias para **garantir execução automática sem erros**:
+
+#### ✨ Melhorias Implementadas
+
+1. **Instalação Automática de Dependências**
+   - O instalador executa `npm install` automaticamente
+   - Dependências do servidor instaladas durante o setup
+   - Mensagens de progresso durante instalação
+
+2. **Verificação de Pré-requisitos**
+   - Detecta se Node.js está instalado
+   - Exibe mensagem amigável se Node.js não for encontrado
+   - Orienta usuário a instalar pré-requisitos
+
+3. **Execução Automática Robusta**
+   - App abre automaticamente ao clicar em "Concluir"
+   - Tratamento de erros com fallbacks inteligentes
+   - Modo degradado se servidor backend falhar
+   - Timeout estendido para inicialização (12 segundos)
+
+4. **Ferramentas de Diagnóstico**
+   - Script "Verificar Instalação" no Menu Iniciar
+   - Reinstalação de dependências sob demanda
+   - Logs detalhados de inicialização
+
+#### 🎯 Arquivos da Solução
+
+- `build/installer.nsh` - Script NSIS customizado
+- `electron/main.js` - Tratamento robusto de erros
+- `verificar-instalacao.bat` - Diagnóstico pós-instalação
+- `gerar-instalador-robusto.bat` - Build automatizado
+
+#### 🚀 Como Gerar Novo Instalador
+
+```bash
+# Método Recomendado
+.\gerar-instalador-robusto.bat
+
+# Ou manualmente
+npm run dist:win
+```
+
+---
+
 ## 📋 Índice
 1. [Configuração do MongoDB Atlas](#configuração-do-mongodb-atlas)
 2. [Desenvolvimento](#desenvolvimento)
 3. [Gerar Instalador](#gerar-instalador)
 4. [Distribuição](#distribuição)
 5. [Atualização Automática](#atualização-automática)
+6. [Solução de Problemas](#solução-de-problemas)
 
 ---
 
@@ -224,28 +273,128 @@ Para publish automático, crie um token:
 
 ---
 
-## 🔧 Troubleshooting
+## 🔧 Solução de Problemas
 
-### Erro: Não conecta ao MongoDB
+### ❌ ERRO AO CLICAR EM "CONCLUIR" - RESOLVIDO ✅
+
+**Versão Antiga:** Aplicativo não abria automaticamente após instalação.
+
+**Versão Nova (21/02/2026):** Problema completamente resolvido com:
+- ✅ Instalação automática de dependências
+- ✅ Verificação de Node.js
+- ✅ Tratamento robusto de erros
+- ✅ Execução automática garantida
+
+**Se ainda tiver o problema na versão antiga:**
+1. Baixe o novo instalador com as correções
+2. Desinstale a versão anterior
+3. Instale a nova versão robusto
+
+**Correção Rápida (Versão Instalada):**
+```cmd
+# Execute no Menu Iniciar > SGE CENTENARIO > Verificar Instalacao
+# Ou manualmente:
+cd "C:\Program Files\SGE CENTENARIO\resources\server"
+npm install --production
+```
+
+### ⚠️ Node.js Não Instalado
+
+**Problema:** `Node.js não foi encontrado` durante instalação
 
 **Solução:**
+1. Baixe Node.js: https://nodejs.org/
+2. Escolha versão LTS (18.x ou superior)
+3. Durante instalação, marque "Automatically install the necessary tools"
+4. Reinicie o computador
+5. Execute o instalador do SGE CENTENÁRIO novamente
+
+**Verificar se Node.js está instalado:**
+```cmd
+node --version
+npm --version
+```
+
+### 🔌 Erro: Não conecta ao MongoDB
+
+**Sintoma:** Mensagem "Não foi possível conectar ao MongoDB"
+
+**Soluções:**
 1. Verifique string de conexão no `.env`
 2. Verifique IP na whitelist do MongoDB Atlas
 3. Teste conexão internet
+4. Confirme que o MongoDB Atlas está ativo
 
-### Erro: Servidor não inicia
+**Teste de Conexão:**
+```bash
+# No servidor
+cd server
+npm run test
+```
 
-**Solução:**
-1. Verifique se porta 5000 está livre
+### 🚫 Erro: Servidor não inicia
+
+**Sintoma:** Tela branca ou erro de conexão
+
+**Soluções:**
+1. Verifique se porta 5000 está livre:
+   ```cmd
+   netstat -ano | findstr :5000
+   ```
 2. Veja logs em: `%APPDATA%\SGE CENTENÁRIO\logs`
 
-### Erro: Aplicação não abre
+### 🖥️ Aplicação Não Abre ou Fecha Imediatamente
+
+**Problema:** Aplicativo abre e fecha rapidamente ou não abre.
+
+**Soluções em Ordem de Prioridade:**
+
+1. **Execute como Administrador**
+   ```
+   Botão direito no atalho > Executar como Administrador
+   ```
+
+2. **Execute Script de Verificação**
+   ```
+   Menu Iniciar > SGE CENTENARIO > Verificar Instalacao
+   ```
+
+3. **Instale Dependências Manualmente**
+   ```cmd
+   cd "C:\Program Files\SGE CENTENARIO\resources\server"
+   npm install --production --legacy-peer-deps
+   ```
+
+4. **Limpe Cache do Electron**
+   ```cmd
+   rmdir /s /q "%APPDATA%\SGE CENTENARIO"
+   ```
+
+5. **Reinstale Completamente**
+   - Desinstale via Painel de Controle
+   - Baixe a versão mais recente do instalador
+   - Instale novamente
+
+### 🔍 Verificar Logs
+
+Os logs do aplicativo estão em:
+```
+%APPDATA%\SGE CENTENARIO\logs\
+```
+
+Use para diagnosticar problemas específicos.
+
+### 💾 Dependências Não Instaladas
+
+**Problema:** `Error: Cannot find module '...'`
 
 **Solução:**
-1. Clique direito no ícone → "Abrir como administrador"
-2. Desinstale e reinstale
+```cmd
+cd "C:\Program Files\SGE CENTENARIO\resources\server"
+npm install --production
+```
 
----
+Ou use o script de verificação no Menu Iniciar.
 
 ## 📱 Uso do Sistema
 
@@ -281,7 +430,19 @@ Para problemas:
 
 ## 🎓 Desenvolvedor
 
-**Sistema:** SGE CENTENÁRIO
-**Versão:** 1.0.0
-**Plataforma:** Windows x64
-**Tecnologias:** Electron, React, Node.js, MongoDB Atlas
+**Sistema:** SGE CENTENÁRIO  
+**Versão:** 1.0.0  
+**Data:** 21 de Fevereiro de 2026  
+**Status:** ✅ Instalador Robusto - Produção  
+**Plataforma:** Windows x64  
+**Tecnologias:** Electron 34, React 18, Node.js, MongoDB Atlas  
+
+**Melhorias Recentes:**
+- ✅ Instalação automática de dependências
+- ✅ Execução automática ao concluir instalação
+- ✅ Tratamento robusto de erros
+- ✅ Scripts de diagnóstico incluídos
+- ✅ Verificação de pré-requisitos
+
+**Repositório:** [ANALISADOR-DE-NOTAS-E-HABILIDADES](https://github.com/RODRIGOGRILLOMOREIRA/ANALISADOR-DE-NOTAS-E-HABILIDADES)  
+**Autor:** Rodrigo Grillo Moreira

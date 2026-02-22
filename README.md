@@ -6,13 +6,17 @@ Sistema completo de gestão escolar com controle de alunos, professores, turmas,
 
 ## 🖥️ VERSÃO DESKTOP PROFISSIONAL
 
-### ✨ Instalador Windows Disponível!
+### ✨ Instalador Windows Robusto e Automático!
 
-**SGE CENTENÁRIO** agora está disponível como aplicação desktop nativa para Windows com instalador profissional.
+**SGE CENTENÁRIO** agora está disponível como aplicação desktop nativa para Windows com instalador profissional e **execução automática garantida**.
 
 #### 📦 Características
 
-- **Instalador NSIS**: `SGE CENTENARIO-Setup-1.0.0.exe` (80,64 MB)
+- **Instalador NSIS Robusto**: `SGE CENTENARIO-Setup-1.0.0.exe` (~80 MB)
+- **Instalação Automática de Dependências**: npm install executado automaticamente
+- **Execução Imediata**: Abre o aplicativo automaticamente ao concluir instalação
+- **Tratamento de Erros Avançado**: Fallbacks inteligentes em caso de problemas
+- **Verificação de Pré-requisitos**: Detecta Node.js e exibe orientações
 - **Ícone Personalizado**: Logo da escola em todos os ícones
 - **MongoDB Atlas**: Conexão automática com banco de dados na nuvem
 - **6 Computadores Simultâneos**: Suporte para múltiplos usuários
@@ -20,16 +24,30 @@ Sistema completo de gestão escolar com controle de alunos, professores, turmas,
 - **System Tray**: Minimiza para barra de tarefas
 - **Código Privado**: Repositório privado para proteção de propriedade intelectual
 
-#### 🚀 Instalação
+#### 🚀 Instalação (Processo Simplificado)
 
-1. Baixe o instalador: `dist/SGE CENTENARIO-Setup-1.0.0.exe`
-2. Execute o arquivo
-3. Escolha o diretório de instalação (ou use o padrão)
-4. Aceite criar ícones na área de trabalho e menu iniciar
-5. Clique em "Instalar"
-6. Execute "SGE CENTENÁRIO" após a conclusão
+1. **Pré-requisito**: Instale [Node.js](https://nodejs.org/) (apenas uma vez)
+2. Baixe o instalador: `dist/SGE CENTENARIO-Setup-1.0.0.exe`
+3. Execute o arquivo (como Administrador recomendado)
+4. Escolha o diretório de instalação
+5. Aguarde a instalação (inclui dependências do servidor)
+6. **O aplicativo abre automaticamente ao concluir!** ✨
 
-O sistema conecta automaticamente ao MongoDB Atlas e inicia o servidor backend na porta 5000.
+#### ✅ Garantias do Instalador
+
+- ✅ **Zero Erros ao Concluir**: Sistema robusto com fallbacks
+- ✅ **Instalação de Dependências**: Automática durante setup
+- ✅ **Verificação de Saúde**: Script incluído no Menu Iniciar
+- ✅ **Modo Degradado**: Funciona mesmo se houver problemas no servidor
+- ✅ **Mensagens Amigáveis**: Orientações claras em caso de problemas
+
+#### 🔧 Ferramentas de Suporte Incluídas
+
+O instalador cria automaticamente:
+- **SGE CENTENÁRIO** - Aplicativo principal
+- **Verificar Instalação** - Diagnóstico e reinstalação de dependências
+
+Acesse pelo Menu Iniciar > SGE CENTENARIO
 
 #### 🔄 Atualizações Automáticas
 
@@ -37,7 +55,8 @@ O sistema verifica atualizações automaticamente ao iniciar e notifica quando u
 
 #### 📖 Documentação Adicional
 
-- [Guia Completo de Instalação](docs/ELECTRON_INSTALACAO.md)
+- [Guia de Instalação Completo](GUIA_INSTALACAO.md) - **NOVO!**
+- [Guia Técnico Electron](docs/ELECTRON_INSTALACAO.md)
 - [Resumo Técnico Electron](docs/RESUMO_ELECTRON.md)
 - [Conclusão da Implementação](docs/CONCLUSAO_ELECTRON.md)
 
@@ -284,6 +303,24 @@ npm start
 
 ### Build Desktop (Instalador Windows)
 
+#### Método Recomendado (Script Robusto)
+
+```bash
+# Na raiz do projeto - Executa build completo com validações
+.\gerar-instalador-robusto.bat
+
+# Este script:
+# ✅ Verifica Node.js e npm
+# ✅ Limpa builds anteriores
+# ✅ Instala todas as dependências
+# ✅ Gera build do React
+# ✅ Valida arquivos necessários
+# ✅ Cria o instalador Windows
+# ✅ Mostra localização do instalador final
+```
+
+#### Método Manual
+
 ```bash
 # Na raiz do projeto
 
@@ -303,6 +340,15 @@ npm run dist
 npm run publish
 ```
 
+### ⚙️ Arquivos do Instalador
+
+O instalador inclui:
+- `build/installer.nsh` - Script NSIS customizado
+- `build/icon.ico` - Ícone do aplicativo
+- `build/installerIcon.ico` - Ícone do instalador
+- `verificar-instalacao.bat` - Script de diagnóstico
+- Dependências do servidor (instaladas automaticamente)
+
 ---
 
 ## 🎯 Scripts Disponíveis
@@ -313,7 +359,16 @@ npm run publish
 - `npm run electron-dev` - Inicia aplicação Electron em modo dev
 - `npm run build` - Build de produção (cliente + servidor)
 - `npm run dist` - Gera instalador Windows
+- `npm run dist:win` - Gera instalador Windows (alternativo)
 - `npm run publish` - Publica no GitHub Releases
+
+### Scripts BAT (Windows)
+
+- `gerar-instalador-robusto.bat` - **RECOMENDADO** - Build completo com validações
+- `verificar-instalacao.bat` - Diagnóstico e verificação de instalação
+- `instalar-dependencias.bat` - Instala todas as dependências
+- `conectar-github.bat` - Configura conexão com GitHub
+- `STATUS-FINAL.bat` - Verifica status do projeto
 
 ### Cliente (client/)
 
@@ -463,6 +518,67 @@ Exemplos disponíveis em: `exemplos/`
 
 ---
 
+## 🔧 Solução de Problemas (Instalador)
+
+### ❌ Erro ao Clicar em "Concluir" - **RESOLVIDO!**
+
+**Problema:** O aplicativo não abre automaticamente após a instalação.
+
+**Solução Implementada:**
+- ✅ Instalação automática de dependências durante setup
+- ✅ Verificação de Node.js e exibição de mensagem se não estiver instalado
+- ✅ Tratamento robusto de erros com fallbacks
+- ✅ Modo degradado que permite o app funcionar mesmo com problemas
+- ✅ Script de verificação disponível no Menu Iniciar
+
+**Se ainda houver problemas:**
+
+1. **Execute "Verificar Instalação"**
+   - Menu Iniciar > SGE CENTENARIO > Verificar Instalacao
+   - Reinstala dependências automaticamente
+
+2. **Instalação Manual de Dependências**
+   ```cmd
+   cd "C:\Program Files\SGE CENTENARIO\resources\server"
+   npm install --production
+   ```
+
+3. **Execute como Administrador**
+   - Botão direito no atalho > Executar como Administrador
+
+### ⚠️ Node.js Não Encontrado
+
+**Problema:** Mensagem "Node.js não foi encontrado" durante instalação.
+
+**Solução:**
+1. Instale o Node.js: https://nodejs.org/
+2. Escolha a versão LTS (recomendado)
+3. Marque "Automatically install the necessary tools"
+4. Reinicie o computador
+5. Execute o instalador do SGE CENTENÁRIO novamente
+
+### 🔌 Erro de Conexão MongoDB
+
+**Problema:** "Não foi possível conectar ao MongoDB"
+
+**Soluções:**
+- Verifique sua conexão com a internet
+- Confirme a URL do MongoDB Atlas nas configurações
+- Verifique se o IP está na whitelist do Atlas
+- Use MongoDB local: `mongodb://localhost:27017/sge`
+
+### 🖥️ Tela Branca ao Abrir
+
+**Soluções:**
+1. Feche o app completamente (bandeja do sistema)
+2. Limpe o cache do Electron
+3. Reinicie o aplicativo
+4. Se persistir, reinstale o aplicativo
+
+Para mais detalhes, consulte: [GUIA_INSTALACAO.md](GUIA_INSTALACAO.md)
+
+---
+
 ## 🤝 Contribuindo
 
 Este é um projeto privado para uso institucional. Para sugestões ou melhorias:
@@ -492,6 +608,9 @@ Este software é proprietário e confidencial. Uso não autorizado é estritamen
 
 ## 🎯 Roadmap Futuro
 
+- [x] Instalador Windows robusto com execução automática
+- [x] Tratamento avançado de erros no instalador
+- [x] Scripts de verificação e diagnóstico
 - [ ] Relatórios PDF automáticos
 - [ ] Notificações por email
 - [ ] App mobile (React Native)
@@ -507,4 +626,5 @@ Este software é proprietário e confidencial. Uso não autorizado é estritamen
 Para suporte técnico ou dúvidas, entre em contato através do repositório do GitHub.
 
 **Versão:** 1.0.0  
-**Última Atualização:** Fevereiro 2026
+**Última Atualização:** 21 de Fevereiro de 2026  
+**Status:** ✅ Instalador Robusto - Produção

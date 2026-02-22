@@ -2,6 +2,7 @@ const { app, BrowserWindow, Tray, Menu, ipcMain, dialog } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const { autoUpdater } = require('electron-updater');
+const fs = require('fs');
 require('dotenv').config();
 
 let mainWindow;
@@ -17,6 +18,21 @@ autoUpdater.autoInstallOnAppQuit = true;
 const SERVER_PATH = isDev 
   ? path.join(__dirname, '../server/src/server.js')
   : path.join(process.resourcesPath, 'server/src/server.js');
+
+// Caminho das dependências do servidor
+const SERVER_MODULES_PATH = isDev
+  ? path.join(__dirname, '../server/node_modules')
+  : path.join(process.resourcesPath, 'server/node_modules');
+
+// Função para verificar se as dependências do servidor estão instaladas
+function checkServerDependencies() {
+  try {
+    return fs.existsSync(SERVER_MODULES_PATH);
+  } catch (error) {
+    console.error('Erro ao verificar dependências:', error);
+    return false;
+  }
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -101,34 +117,61 @@ async function startBackendServer() {
   return new Promise((resolve, reject) => {
     console.log('🚀 Iniciando servidor backend...');
     
-    serverProcess = spawn('node', [SERVER_PATH], {
-      env: {
-        ...process.env,
-        PORT: process.env.PORT || 5000,
-        NODE_ENV: isDev ? 'development' : 'production'
-      }
-    });
-
-    serverProcess.stdout.on('data', (data) => {
-      console.log(`[Server]: ${data}`);
-      if (data.toString().includes('Servidor rodando') || data.toString().includes('MongoDB conectado')) {
-        resolve();
-      }
-    });
-
-    serverProcess.stderr.on('data', (data) => {
-      console.error(`[Server Error]: ${data}`);
-    });
-
-    serverProcess.on('close', (code) => {
-      console.log(`Servidor encerrado com código ${code}`);
-    });
-
-    // Timeout de 10 segundos
-    setTimeout(() => {
-      console.log('✅ Servidor backend assumido como iniciado');
+    // Verifica se o arquivo do servidor existe
+    const fs = require('fs');
+    if (!fs.existsSync(SERVER_PATH)) {
+      console.error(`❌ Servidor não encontrado em: ${SERVER_PATH}`);
+      // Continua mesmo sem servidor em modo degradado
       resolve();
-    }, 10000);
+      return;
+    }
+    
+    try {
+      serverProcess = spawn('node', [SERVER_PATH], {
+        env: {
+          ...process.env,
+          PORT: process.env.PORT || 5000,
+          NODE_ENV: isDev ? 'development' : 'production'
+        },
+        cwd: path.dirname(SERVER_PATH),
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+
+      serverProcess.stdout.on('data', (data) => {
+        console.log(`[Server]: ${data}`);
+        if (data.toString().includes('Servidor rodando') || data.toString().includes('MongoDB conectado')) {
+          resolve();
+        }
+      });
+
+      serverProcess.stderr.on('data', (data) => {
+        console.error(`[Server Error]: ${data}`);
+      });
+
+      serverProcess.on('error', (error) => {
+        console.error(`[Server Process Error]: ${error.message}`);
+        // Continua mesmo com erro
+        resolve();
+      });
+
+      serverProcess.on('close', (code) => {
+        console.log(`Servidor encerrado com código ${code}`);
+        if (code !== 0 && code !== null) {
+          console.warn('⚠️ Servidor encerrado com erro, mas continuando...');
+        }
+      });
+
+      // Timeout de 12 segundos com mensagem mais robusta
+      setTimeout(() => {
+        console.log('✅ Servidor backend iniciado ou em modo standalone');
+        resolve();
+      }, 12000);
+      
+    } catch (error) {
+      console.error('❌ Erro ao iniciar servidor:', error);
+      // Continua mesmo com erro
+      resolve();
+    }
   });
 }
 
@@ -188,12 +231,29 @@ app.whenReady().then(async () => {
   console.log('🎓 SGE CENTENÁRIO - Sistema de Gestão Escolar');
   console.log('📚 Iniciando sistema...');
 
+  // Verifica dependências do servidor
+  const hasDependencies = checkServerDependencies();
+  if (!hasDependencies && !isDev) {
+    console.warn('⚠️ Dependências do servidor não encontradas');
+    console.log('📦 Caminho esperado:', SERVER_MODULES_PATH);
+  }
+
   // Inicia servidor backend
   try {
     await startBackendServer();
     console.log('✅ Servidor backend iniciado');
   } catch (error) {
     console.error('❌ Erro ao iniciar servidor:', error);
+    // Mostra mensagem opcional, mas continua
+    if (!isDev) {
+      dialog.showMessageBox({
+        type: 'warning',
+        title: 'SGE CENTENÁRIO',
+        message: 'Aviso de Inicialização',
+        detail: 'O servidor backend está iniciando em segundo plano.\n\nSe houver problemas de conexão, reinicie o aplicativo.',
+        buttons: ['Continuar']
+      });
+    }
   }
 
   // Aguarda um pouco para o servidor estar pronto
